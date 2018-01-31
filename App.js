@@ -19,6 +19,7 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import GoodVoice from './GoodVoice'
+import Dance     from './Dance'
 
 var SCREEN_WIDTH = Dimensions.get('window').width;
 var SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -68,11 +69,13 @@ export default class App extends Component <{}> {
                 console.log(error)
             })
     }
-
+    //<Dance/>
+    //<GoodVoice/>
     render() {
         return (
             <View style={styles.container}>
                 <View style={styles.headBar}></View>
+
                 <GoodVoice/>
 
                 <View style={styles.bottomBar}>

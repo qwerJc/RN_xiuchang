@@ -1,5 +1,5 @@
 import React, {
-    Component
+    Component,
 } from 'react';
 import {
     StyleSheet,
@@ -8,67 +8,77 @@ import {
     FlatList,
     TouchableWithoutFeedback,
     Dimensions,
-    ImageBackground,
     Image,
+    ImageBackground,
+    ActivityIndicator,
 } from 'react-native'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
+var isNeedupLoad = [true, true, true, true, true, true];
+
 class GoodVoice extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            dataSource: [
+            loadState: 0,    //加载状态。-1为加载失败，0为加载中，1为加载成功
+            nowLevelChose: 0,
+            dataSource_u0: [],
+            dataSource_r10: [],
+            dataSource_r5: [],
+            dataSource_r4: [],
+            dataSource_r1: [],
+            dataSource_r2: [],
+            tagInfo: [],
+            levelData: [
                 {
-                    "wealthrank": 0,
-                    "username": "",
-                    "pic": "",
-                    "rid": "",
-                    "h264": "",
-                    "isRecommend": 1,
-                    "ut": 1,
-                    "rtype": "",
-                    "count": 0,
-                    "honor": "",
-                    "userMood": "",
-                    "tagid": "",
-                    "uid": "",
-                    "minigame": 0,
-                    "sex": 0,
-                    "goldAnchor": 0,
-                    "zy": 0,
-                    "score": 0,
-                    "isSproutingAnchor": 0,
-                    "recscore": 0,
-                    "anchorTm": "1505897369",
-                    "ltype": 3,
-                    "sound": 0,
-                    "alevel": "r1",
-                    "isvideo": 0,
-                    "videotype": 1,
-                    "recordtype": 0,
-                    "flvtitle": "f50669734-128547854",
-                    "secflvtitle": "f50669734-128547854_200",
-                    "mgid": 0,
-                    "pospic": "https://vi0.6rooms.com/live/2017/08/23/18/1010v1503485367918384222_s.jpg",
-                    "tala": 0,
-                    "talc": 0,
-                    "province": "",
-                    "tagids": [],
-                    "largepic": "",
-                    "realstarttime": 0
-                }]
+                    "title": "全部",
+                    "iconURL": require('./images/LiveLobby/liveLobby_voice_all_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_all_highlight.png'),
+                    "requestType": "u0",
+                },
+                {
+                    "title": "炽星",
+                    "iconURL": require('./images/LiveLobby/liveLobby_voice_blazing_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_blazing_star_highlight.png'),
+                    "requestType": "r10",
+                },
+                {
+                    "title": "超星",
+                    "iconURL": require('./images/LiveLobby/liveLobby_voice_blazing_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_blazing_star_highlight.png'),
+                    "requestType": "r5",
+                },
+                {
+                    "title": "巨星",
+                    "iconURL": require('./images/LiveLobby/liveLobby_voice_big_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_big_star_highlight.png'),
+                    "requestType": "r4",
+                },
+                {
+                    "title": "明星",
+                    "iconURL": require('./images/LiveLobby/liveLobby_voice_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_star_highlight.png'),
+                    "requestType": "r1",
+                },
+                {
+                    "title": "红人",
+                    "iconURL": require('./images/LiveLobby/liveLobby_voice_little_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_little_star_highlight.png'),
+                    "requestType": "r2",
+                },
+            ],
         };
     }
 
     componentWillMount() {
         var formdata = new FormData();
-        formdata.append("rate", '1')
-        formdata.append("type", 'u0')
-        formdata.append("size", '0')
-        formdata.append("p", '0')
-        formdata.append("av", '2.1')
+        formdata.append("rate", '1');
+        formdata.append("type", 'u0');
+        formdata.append("size", '0');
+        formdata.append("p", '0');
+        formdata.append("av", '2.1');
 
         console.log("【好声音 页面将要打开】");
         fetch('http://v.6.cn/coop/mobile/index.php?padapi=coop-mobile-getlivelistnew.php', {
@@ -82,88 +92,442 @@ class GoodVoice extends React.Component {
             .then((json) => {
                 console.log("【************* Success *****************】 ");
                 // console.log(json)
-                console.log(json.content.u0[0].username)
+                // console.log(json.content.u0[0].username)
+                console.log(json.content.tagInfo.length);
                 this.setState({
-                    dataSource: json.content.u0,
+                    loadState: 1,
+                    dataSource_u0: json.content.u0,
+                    tagInfo: json.content.tagInfo,
                 });
             })
             .catch((error) => {
                 console.log("【************* False *****************】 ");
-                console.log(error)
+                console.log(error);
+                this.setState({
+                   loadState:-1,
+                });
             })
     }
 
-    _onSelect() {
-        console.log('click');
-        //<Image style={styles.cellItemBottomBarIcon} source={require('./images/LiveLobby/LiveLobby_icon_username.png')}></Image>
+    _onSelectAnchor(index) {
+        console.log('click: ' + this.state.dataSource[index].username + ' ' + this.state.dataSource[index].rid);
+    }
+
+    //tagIDs 为 每个cellItem的tagID的集合
+    showTag(tagIDs) {
+        if (tagIDs.length > 0) {
+            switch (tagIDs.length) {
+                case 1: {
+                    return (
+                        <View style={styles.cellItemImgTagBar}>
+                            {this.getTagView(tagIDs[0], true)}
+                        </View>
+                    );
+                    break;
+                }
+                case 2: {
+                    return (
+                        <View style={styles.cellItemImgTagBar}>
+                            {this.getTagView(tagIDs[0], true)}
+                            {this.getTagView(tagIDs[1], false)}
+                        </View>
+                    );
+                    break;
+                }
+                case 3: {
+                    return (
+                        <View style={styles.cellItemImgTagBar}>
+                            {this.getTagView(tagIDs[0], true)}
+                            {this.getTagView(tagIDs[1], false)}
+                            {this.getTagView(tagIDs[2], false)}
+                        </View>
+                    );
+                    break;
+                }
+                case 4: {
+                    return (
+                        <View style={styles.cellItemImgTagBar}>
+                            {this.getTagView(tagIDs[0], true)}
+                            {this.getTagView(tagIDs[1], false)}
+                            {this.getTagView(tagIDs[2], false)}
+                            {this.getTagView(tagIDs[4], false)}
+                        </View>
+                    );
+                    break;
+                }
+            }
+        }
+    }
+
+    getTagView(tagID, isFirstTag) {
+        var index = 0;
+        while (index < this.state.tagInfo.length) {
+            if (tagID == this.state.tagInfo[index].id) {
+                if (isFirstTag) {
+                    return (<Image
+                        style={{
+                            width: this.state.tagInfo[index].viewPicSmall.img2xw / 2,
+                            height: this.state.tagInfo[index].viewPicSmall.img2xh / 2,
+                            marginLeft: 8,
+                            marginBottom: 5,
+                        }}
+                        source={{uri: this.state.tagInfo[index].viewPicSmall.img2x}}/>);
+                } else {
+                    return (<Image
+                        style={{
+                            width: this.state.tagInfo[index].viewPicSmall.img2xw / 2,
+                            height: this.state.tagInfo[index].viewPicSmall.img2xh / 2,
+                            marginLeft: 5,
+                            marginBottom: 5,
+                        }}
+                        source={{uri: this.state.tagInfo[index].viewPicSmall.img2x}}/>);
+                }
+            }
+            index++;
+        }
+    }
+
+    showChoseLevelView() {
+        // console.log(this.state.nowLevelChose);
+        return (
+            <FlatList style={styles.levelView}
+                      data={this.state.levelData}
+                      numColumns={3}
+                      renderItem={({item, index}) => {
+                          if (index == this.state.nowLevelChose) {
+                              return (
+                                  <TouchableWithoutFeedback onPress={() => this._onSelectLevel(index)}>
+                                      <View style={styles.levelViewItem}>
+                                          <Image source={item.iconURL_H}/>
+                                          <Text style={{marginLeft: 6, color: 'rgba(255,0,146,1)'}}>{item.title}</Text>
+                                      </View>
+                                  </TouchableWithoutFeedback>
+                              );
+                          } else {
+                              return (
+                                  <TouchableWithoutFeedback onPress={() => this._onSelectLevel(index)}>
+                                      <View style={styles.levelViewItem}>
+                                          <Image source={item.iconURL}/>
+                                          <Text style={{marginLeft: 6}}>{item.title}</Text>
+                                      </View>
+                                  </TouchableWithoutFeedback>
+                              );
+                          }
+                      }
+                      }
+                      keyExtractor={(item, index) => index}
+            >
+            </FlatList>
+        )
+    }
+
+    _onSelectLevel(index) {
+        if (index != this.state.nowLevelChose) {
+
+            var formdata = new FormData();
+            formdata.append("rate", '1');
+            formdata.append("type", this.state.levelData[index].requestType);
+            formdata.append("size", '0');
+            formdata.append("p", '0');
+            formdata.append("av", '2.1');
+
+            console.log(formdata);
+
+            if (isNeedupLoad[index]) {
+                isNeedupLoad[index] = false;
+                console.log('==================【需要更新】=====================');
+
+                this.setState({
+                    loadState: 0,
+                });
+
+                fetch('http://v.6.cn/coop/mobile/index.php?padapi=coop-mobile-getlivelistnew.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formdata,
+                })
+                    .then((response) => response.json())
+                    .then((json) => {
+                        console.log("【************* Success *****************】 ");
+                        switch (index) {
+                            case 0: {
+                                this.timer = setTimeout(
+                                    () => {
+                                        isNeedupLoad[index] = true;
+                                        console.log(this.state.levelData[index].title + "可以更新了");
+                                    },
+                                    180000
+                                );
+                                this.setState({
+                                    loadState: 1,
+                                    dataSource_u0: json.content.u0,
+                                    tagInfo: json.content.tagInfo,
+                                    nowLevelChose: index,
+                                });
+                                break;
+                            }
+                            case 1: {
+                                this.timer = setTimeout(
+                                    () => {
+                                        isNeedupLoad[index] = true;
+                                        console.log(this.state.levelData[index].title + "可以更新了");
+                                    },
+                                    180000
+                                );
+                                this.setState({
+                                    loadState: 1,
+                                    dataSource_r10: json.content.r10,
+                                    tagInfo: json.content.tagInfo,
+                                    nowLevelChose: index,
+                                });
+                                break;
+                            }
+                            case 2: {
+                                this.timer = setTimeout(
+                                    () => {
+                                        isNeedupLoad[index] = true;
+                                        console.log(this.state.levelData[index].title + "可以更新了");
+                                    },
+                                    180000
+                                );
+
+                                this.setState({
+                                    loadState: 1,
+                                    dataSource_r5: json.content.r5,
+                                    tagInfo: json.content.tagInfo,
+                                    nowLevelChose: index,
+                                });
+                                break;
+                            }
+                            case 3: {
+                                this.timer = setTimeout(
+                                    () => {
+                                        isNeedupLoad[index] = true;
+                                        console.log(this.state.levelData[index].title + "可以更新了");
+                                    },
+                                    180000
+                                );
+
+                                this.setState({
+                                    loadState: 1,
+                                    dataSource_r4: json.content.r4,
+                                    tagInfo: json.content.tagInfo,
+                                    nowLevelChose: index,
+                                });
+                                break;
+                            }
+                            case 4: {
+                                this.timer = setTimeout(
+                                    () => {
+                                        isNeedupLoad[index] = true;
+                                        console.log(this.state.levelData[index].title + "可以更新了");
+                                    },
+                                    180000
+                                );
+
+                                this.setState({
+                                    loadState: 1,
+                                    dataSource_r1: json.content.r1,
+                                    tagInfo: json.content.tagInfo,
+                                    nowLevelChose: index,
+                                });
+                                break;
+                            }
+                            case 5: {
+                                this.timer = setTimeout(
+                                    () => {
+                                        isNeedupLoad[index] = true;
+                                        console.log(this.state.levelData[index].title + "可以更新了");
+                                    },
+                                    180000
+                                );
+
+                                this.setState({
+                                    loadState: 1,
+                                    dataSource_r2: json.content.r2,
+                                    tagInfo: json.content.tagInfo,
+                                    nowLevelChose: index,
+                                });
+                                break;
+                            }
+                        }
+
+                    })
+                    .catch((error) => {
+                        console.log("【************* False *****************】 ");
+                        console.log(error);
+                        this.setState({
+                            loadState: -1,
+                        });
+                    })
+            } else {
+                this.setState({
+                    nowLevelChose: index,
+                });
+                console.log("没到时间，不需要更新")
+            }
+        }
+    }
+
+    getDataSource() {
+        switch (this.state.nowLevelChose) {
+            case 0: {
+                return this.state.dataSource_u0;
+                break;
+            }
+            case 1: {
+                return this.state.dataSource_r10;
+                break;
+            }
+            case 2: {
+                return this.state.dataSource_r5;
+                break;
+            }
+            case 3: {
+                return this.state.dataSource_r4;
+                break;
+            }
+            case 4: {
+                return this.state.dataSource_r1;
+                break;
+            }
+            case 5: {
+                return this.state.dataSource_r2;
+                break;
+            }
+        }
     }
 
     render() {
-        console.log(this.state.dataSource[0].username);
-        return (
-            <FlatList style={styles.list}
-                      data={this.state.dataSource}
-                      numColumns ={2}
-                      renderItem={({item}) =>
-                          <View style={styles.cell}>
-                              <TouchableWithoutFeedback onPress={() => this._onSelect(item.PicL)}>
-                                  <View style={styles.cellItem}>
-                                      <Image style={styles.cellItemImg} source={{uri: item.pospic}}></Image>
-                                      <View style={styles.cellItemBottomBar}>
-                                          <Text style={styles.cellItemBottomBarName}
-                                                numberOfLines={1}>{item.username}</Text>
-                                          <Image style={styles.cellItemBottomBarIcon}
-                                                 source={require('./images/LiveLobby/liveLobby_cell_Item_audienceCount.png')}></Image>
-                                          <Text style={styles.cellItemBottomBarCount}>{item.count}</Text>
-                                      </View>
-                                  </View>
-                              </TouchableWithoutFeedback>
+        switch (this.state.loadState) {
+            //请求失败
+            case -1: {
+                return (
+                    <View style={styles.failLoadContainer}>
+                        <Text style={styles.failLoadContainerText}>请下拉刷新试试</Text>
+                    </View>
+                );
+                break;
+            }//加载中
+            case  0: {
+                return (
+                    <View style={styles.waitLoadContainer}>
+                        <ActivityIndicator
+                            animating={this.state.animating}
+                            style={styles.waitLoadContainerIndicator}
+                            size="large"/>
+                    </View>
+                );
+                break;
+            }//请求成功
+            case 1: {
+                //数据不为空 center,contain,cover,repeat,stretch
+                if (this.getDataSource().length > 0) {
+                    return (
+                        <View>
+                            <FlatList style={styles.list}
+                                      data={this.getDataSource()}
+                                      numColumns={2}
+                                      getItemLayout={(data, index) => ({
+                                          length: (SCREEN_WIDTH - 24) * 0.61,
+                                          offset: (SCREEN_WIDTH - 24) * 0.61 * index,
+                                          index
+                                      })}
+                                      initialNumToRender={3}
+                                      ListHeaderComponent={this.showChoseLevelView.bind(this)}
+                                      renderItem={({item, index}) =>
+                                          <View style={styles.cell}>
+                                              <TouchableWithoutFeedback onPress={() => this._onSelectAnchor(index)}>
+                                                  <View style={styles.cellItem}>
+                                                      <View style={styles.cellItemImg}>
+                                                          <ImageBackground style={styles.cellItemImg}
+                                                                           source={{uri: item.pospic}}>
+                                                              {this.showTag(item.tagids)}
+                                                          </ImageBackground>
+                                                      </View>
+                                                      <View style={styles.cellItemBottomBar}>
+                                                          <Text style={styles.cellItemBottomBarName}
+                                                                numberOfLines={1}>{item.username}</Text>
+                                                          <Image style={styles.cellItemBottomBarIcon}
+                                                                 source={require('./images/LiveLobby/liveLobby_cell_Item_audienceCount.png')}/>
+                                                          <Text
+                                                              style={styles.cellItemBottomBarCount}>{item.count}</Text>
+                                                      </View>
+                                                  </View>
+                                              </TouchableWithoutFeedback>
+                                          </View>
+                                      }
+                                      keyExtractor={(item, index) => index}
+                            />
+                        </View>
 
-                              <TouchableWithoutFeedback onPress={() => this._onSelect(item.PicR)}>
-                                  <View style={styles.cellItem}>
-                                      <Image style={styles.cellItemImg} source={{uri: item.pospic}}></Image>
-                                      <View style={styles.cellItemBottomBar}>
-                                          <Text style={styles.cellItemBottomBarName}
-                                                numberOfLines={1}>{item.username}</Text>
-                                          <Image style={styles.cellItemBottomBarIcon}
-                                                 source={require('./images/LiveLobby/liveLobby_cell_Item_audienceCount.png')}></Image>
-                                          <Text style={styles.cellItemBottomBarCount}>{item.count}</Text>
-                                      </View>
-                                  </View>
-                              </TouchableWithoutFeedback>
-                          </View>
-                      }
-            />
-        );
+                    );
+                } else {
+                    //空数据
+                    return (
+                        <ImageBackground style={styles.waitLoadContainer}
+                                         source={require('./images/LiveLobby/liveLobby_mask_empty.png')}
+                                         resizeMode='stretch'>
+                            <Image style={styles.waitLoadContainerIndicator}
+                                   source={require('./images/LiveLobby/liveLobby_icon_anchorEmpty.png')}
+                            />
+                        </ImageBackground>
+                    );
+                }
+                break;
+            }
+        }
     }
 }
 
 const styles = StyleSheet.create({
-    bo: {
-        flex: 1,
-        backgroundColor: 'red',
+    levelViewCell: {
+        height: 44,
+        backgroundColor: 'gray',
+    },
+    levelViewItem: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 44,
+        width: SCREEN_WIDTH / 3,
+        borderWidth: 0.5,
+        borderLeftWidth: 0,
+        borderColor: 'rgba(220, 220, 220, 1)',
+    },
+    list: {
+        backgroundColor: 'rgba(240,240,240,1)',
+        height: SCREEN_HEIGHT - 115,
     },
     cell: {
-        backgroundColor: 'gray',
-        flexDirection: 'row',
         marginLeft: 0,
         marginTop: 0,
-        width: SCREEN_WIDTH,
-        height: (SCREEN_WIDTH - 24) * 0.61,
+        paddingBottom: 0,
         //0.61 = 440 / 360; 440:cellHeight ;    360: ItemWidth
         overflow: 'hidden',
     },
     cellItem: {
+        width: (SCREEN_WIDTH - 21) / 2,
+        height: (SCREEN_WIDTH - 21) * 0.61,
         flexDirection: 'column',
-        marginLeft: 8,
-        marginTop: 8,
+        marginLeft: 7,
+        marginTop: 7,
         borderRadius: 10,
         overflow: 'hidden',
     },
     cellItemImg: {
-        width: (SCREEN_WIDTH - 24) / 2,
-        height: (SCREEN_WIDTH - 24) * 0.61 - 36,
+        width: (SCREEN_WIDTH - 21) / 2,
+        height: (SCREEN_WIDTH - 21) * 0.61 - 36,
         paddingBottom: 36,
+    },
+    cellItemImgTagBar: {
+        backgroundColor: 'rgba(0,0,0,0)',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        marginTop: (SCREEN_WIDTH - 21) * 0.61 - 59,
     },
     cellItemBottomBar: {
         flexDirection: 'row',
@@ -175,7 +539,7 @@ const styles = StyleSheet.create({
     cellItemBottomBarName: {
         letterSpacing: 0,
         marginLeft: 8,
-        marginBottom: 6,
+        marginBottom: 4,
         width: 90,
         fontSize: 12,
     },
@@ -183,30 +547,34 @@ const styles = StyleSheet.create({
         width: 12,
         height: 10,
         marginRight: 0,
-        marginLeft:4,
-        marginBottom: 6,
+        marginLeft: 4,
+        marginBottom: 4,
     },
     cellItemBottomBarCount: {
-        width: 37,
-        marginRight: 4,
-        marginBottom: 7,
+        width: 40,
+        marginRight: 2,
+        marginBottom: 4,
         letterSpacing: 0,
         fontSize: 12,
     },
-    cellImg: {
-        width: (SCREEN_WIDTH - 24) / 2,
-        height: (SCREEN_WIDTH - 24) / 2 * SCREEN_HEIGHT / SCREEN_WIDTH,
-        backgroundColor: 'rgba(255,255,255,0.3)',
-        flexDirection: 'row',
-        justifyContent: 'space-between', //定义了伸缩项目在主轴线的对齐方式
+    //WaitLoading
+    waitLoadContainer: {
+        height: SCREEN_HEIGHT - 115,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    cellImgTitle: {
-        marginTop: 155,
-        marginLeft: 10,
-        fontSize: 15,
-        fontWeight: 'bold',
-        color: 'white',
+    waitLoadContainerIndicator: {
+        height: 80,
     },
+    //FailLoading
+    failLoadContainer:{
+        height: SCREEN_HEIGHT - 115,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    failLoadContainerText:{
+        color:'gray',
+    }
 });
 
 module.exports = GoodVoice;
