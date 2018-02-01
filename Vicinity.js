@@ -21,13 +21,12 @@ const ProvinceMenuMaxHeight = SCREEN_HEIGHT - 170;
 class Vicinity extends React.Component {
     constructor(props) {
         super(props);
-        this.try = 'qqq';
-        this.provinceMenuListHeight = 0;
+        this.provinceMenuButtonTitle = '正在定位...';
         this.state = {
+            provinceMenuListHeight: new Animated.Value(0),
             isCanClick: true,
             isShowMenuList: false,
             iconRotateValue: new Animated.Value(0.5),
-            provinceMenuButtonTitle: '正在定位...',
             loadState: 0,    //加载状态。-1为加载失败，0为加载中，1为加载成功
             dataSource: [], //list的数据
             tagInfo: [],    //所有tag标签的数据
@@ -153,22 +152,30 @@ class Vicinity extends React.Component {
     }
 
     _onShowProvinceMenu() {
-
-        console.log(this.try);
         //判断当前是否可以点击，防止
         if (this.state.isCanClick) {
             this.setState({
                 isCanClick: false,
             });
-            if (this.state.isShowMenuList) {
+            if (this.state.isShowMenuList) {//close
                 this.state.iconRotateValue.setValue(0);
-                this.provinceMenuListHeight = 0;
                 Animated.timing(
                     this.state.iconRotateValue, {
                         toValue: 0.5,
                         duration: 500,// 动画持续的时间（单位是毫秒）
                         easing: Easing.inOut(Easing.quad),
                     }).start(() => this.animateProvinceMeunEnd());
+
+                //list animation
+                this.state.provinceMenuListHeight.setValue(ProvinceMenuMaxHeight);
+                Animated.timing(
+                    this.state.provinceMenuListHeight,
+                    {
+                        duration: 500,
+                        toValue: 0,
+                        easing: Easing.inOut(Easing.quad),
+                    }
+                ).start();
             } else {
                 // this.provinceMenuListHeight = ProvinceMenuMaxHeight;
                 Animated.timing(
@@ -178,20 +185,16 @@ class Vicinity extends React.Component {
                         // easing: Easing.bezier(0.0, 0.73, 0.37, 1),
                         easing: Easing.inOut(Easing.quad),
                     }).start(() => this.animateProvinceMeunEnd());
-                var count = 0;
-                while (count < 100) {
-                    requestAnimationFrame(() => {
-                        this.provinceMenuListHeight = ProvinceMenuMaxHeight * count / 100;
-                        this._refProvinceMenuList.setNativeProps({
-                            style: {
-                                backgroundColor: 'red',
-                                height: this.provinceMenuListHeight,
-                            }
-                        });
-                    });
-                    console.log(count);
-                    count++;
-                }
+
+                this.state.provinceMenuListHeight.setValue(0);
+                Animated.timing(
+                    this.state.provinceMenuListHeight,
+                    {
+                        duration: 500,
+                        toValue: ProvinceMenuMaxHeight,
+                        easing: Easing.inOut(Easing.quad),
+                    }
+                ).start();
             }
         }
     }
@@ -237,7 +240,7 @@ class Vicinity extends React.Component {
                                         <Image style={styles.provinceMenuButtonLeftViewIcon}
                                                source={require('./images/LiveLobby/liveLobby_local_menu_icon.png')}/>
                                         <Text style={styles.provinceMenuButtonLeftViewTitle}>
-                                            {this.state.provinceMenuButtonTitle}
+                                            {this.provinceMenuButtonTitle}
                                         </Text>
                                     </View>
                                     <Animated.Image // 可选的基本组件类型: Image, Text, View(可以包裹任意子View)
@@ -286,20 +289,26 @@ class Vicinity extends React.Component {
                                       }
                                       keyExtractor={(item, index) => index}
                             />
-
-                            <View style={{
+                            <Animated.View style={{
                                 overflow: 'hidden',
                                 marginTop: 55,
                                 position: 'absolute',
-                                height: this.provinceMenuListHeight,
-                                width: 200,
-                                backgroundColor: 'green'
-                            }} ref={(c) => this._refProvinceMenuList = c}>
-                                <Text>zzz</Text>
-                                <Text>zzz</Text>
-                                <Text>zzz</Text>
-                                <Text>zzz</Text>
-                            </View>
+                                height: this.state.provinceMenuListHeight,
+                                width: SCREEN_WIDTH,
+                                backgroundColor: 'green',
+                            }}>
+                                <FlatList style={styles.list}
+                                          data={['北京', '天津', '河北']}
+                                          renderItem={({item}) =>
+                                              <View>
+                                                  <Text>
+                                                      {item}
+                                                  </Text>
+                                              </View>
+                                          }
+                                          keyExtractor={(item, index) => index}
+                                />
+                            </Animated.View>
                         </View>
                     );
                     break;
