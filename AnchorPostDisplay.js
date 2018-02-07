@@ -4,8 +4,10 @@ import {
     AppRegistry,
     Dimensions,
     Image,
+    NativeModules,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View,
 } from 'react-native';
 
@@ -22,19 +24,18 @@ const ANCHOR_POST_GAP = 7;
 export default class AnchorPostDisplay extends Component {
 
     static defaultProps = {
-        pic : '',
-        name : '',
-        audienceCount : '',
-        tags : [],
+        dataDic : {},
         tagsDic : [],
     }
 
     constructor(props: any) {
         super(props);
+
+        this.rnCallNativeManager = NativeModules.RNCallNativeManager; // rn 向 native 发送通知
     }
 
     render() {
-        let audienceCountWidth = 6 * this.props.audienceCount.toString().length;
+        let audienceCountWidth = 6 * this.props.dataDic.count.toString().length;
 
         return(
             <View style={styles.bgView}>
@@ -42,7 +43,7 @@ export default class AnchorPostDisplay extends Component {
 
                 <View style={styles.bottomBar}>
                     <Text style={styles.nameLabel} numberOfLines={1}>
-                        {this.props.name}
+                        {this.props.dataDic.username}
                     </Text>
 
                     <Image style={{
@@ -52,7 +53,7 @@ export default class AnchorPostDisplay extends Component {
                         marginTop:13,
                         width:12,
                         height:12,
-                    }} source={require('./images/LiveLobby1/live_list_icon_audienceCount.png')}>
+                    }} source={require('./images/LiveLobby/live_list_icon_audienceCount.png')}>
                     </Image>
 
                     <Text style={{
@@ -70,13 +71,24 @@ export default class AnchorPostDisplay extends Component {
                         fontWeight:'normal',
                         textAlign:'right',
                     }} numberOfLines={1}>
-                        {this.props.audienceCount}
+                        {this.props.dataDic.count}
                     </Text>
                 </View>
 
                 {this.renderTags()}
 
                 {this.renderCorners()}
+
+                <TouchableOpacity style={{
+                    position:'absolute',
+
+                    marginLeft:0,
+                    marginTop:0,
+                    width:(SCREEN_WIDTH - ANCHOR_POST_GAP * 3) / 2,
+                    height:(SCREEN_WIDTH - ANCHOR_POST_GAP * 3) / 2 + 36,
+                }} onPress={this.anchorButtonAction.bind(this, this.props.dataDic)} activeOpacity={1}>
+
+                </TouchableOpacity>
             </View>
         );
     }
@@ -85,33 +97,33 @@ export default class AnchorPostDisplay extends Component {
         if (IS_5_5_SCREEN) {
             return(
                 <View style={styles.anchorPicContainer}>
-                    <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby1/live_list_placeholder_1242.png')}>
+                    <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby/live_list_placeholder_1242.png')}>
                     </Image>
-                    <Image style={styles.anchorPic} source={{uri: this.props.pic}}>
+                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pic}}>
                     </Image>
-                    <Image style={styles.anchorShadow} source={require('./images/LiveLobby1/live_list_image_banner_mask.png')}>
+                    <Image style={styles.anchorShadow} source={require('./images/LiveLobby/live_list_image_banner_mask.png')}>
                     </Image>
                 </View>
             );
         } else if (IS_4_7_SCREEN) {
             return(
                 <View style={styles.anchorPicContainer}>
-                    <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby1/live_list_placeholder_750.png')}>
+                    <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby/live_list_placeholder_750.png')}>
                     </Image>
-                    <Image style={styles.anchorPic} source={{uri: this.props.pic}}>
+                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pic}}>
                     </Image>
-                    <Image style={styles.anchorShadow} source={require('./images/LiveLobby1/live_list_image_banner_mask.png')}>
+                    <Image style={styles.anchorShadow} source={require('./images/LiveLobby/live_list_image_banner_mask.png')}>
                     </Image>
                 </View>
             );
         } else {
             return(
                 <View style={styles.anchorPicContainer}>
-                    <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby1/live_list_placeholder_640.png')}>
+                    <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby/live_list_placeholder_640.png')}>
                     </Image>
-                    <Image style={styles.anchorPic} source={{uri: this.props.pic}}>
+                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pic}}>
                     </Image>
-                    <Image style={styles.anchorShadow} source={require('./images/LiveLobby1/live_list_image_banner_mask.png')}>
+                    <Image style={styles.anchorShadow} source={require('./images/LiveLobby/live_list_image_banner_mask.png')}>
                     </Image>
                 </View>
             );
@@ -123,8 +135,8 @@ export default class AnchorPostDisplay extends Component {
         let tagsPic = [];
         let tagsWidth = [];
 
-        for (let i = 0; i < this.props.tags.length; i++) {
-            let tagID = this.props.tags[i];
+        for (let i = 0; i < this.props.dataDic.tagids.length; i++) {
+            let tagID = this.props.dataDic.tagids[i];
 
             for (let j = 0; j < this.props.tagsDic.length; j++) {
                 if (tagID == this.props.tagsDic[j].id) {
@@ -220,16 +232,20 @@ export default class AnchorPostDisplay extends Component {
     renderCorners() {
         return(
             <View style={styles.cornerView}>
-                <Image style={styles.topLeftCorner} source={require('./images/LiveLobby1/live_list_icon_corner_topLeft.png')}>
+                <Image style={styles.topLeftCorner} source={require('./images/LiveLobby/live_list_icon_corner_topLeft.png')}>
                 </Image>
-                <Image style={styles.topRightCorner} source={require('./images/LiveLobby1/live_list_icon_corner_topRight.png')}>
+                <Image style={styles.topRightCorner} source={require('./images/LiveLobby/live_list_icon_corner_topRight.png')}>
                 </Image>
-                <Image style={styles.bottomLeftCorner} source={require('./images/LiveLobby1/live_list_icon_corner_bottomLeft.png')}>
+                <Image style={styles.bottomLeftCorner} source={require('./images/LiveLobby/live_list_icon_corner_bottomLeft.png')}>
                 </Image>
-                <Image style={styles.bottomRightCorner} source={require('./images/LiveLobby1/live_list_icon_corner_bottomRight.png')}>
+                <Image style={styles.bottomRightCorner} source={require('./images/LiveLobby/live_list_icon_corner_bottomRight.png')}>
                 </Image>
             </View>
         );
+    }
+
+    anchorButtonAction(dataDic) {
+        this.rnCallNativeManager.rnCallNativeWithEvent('openLiveRoom', dataDic);
     }
 }
 
@@ -237,8 +253,8 @@ const styles = StyleSheet.create({
     bgView: {
         flexDirection:'column',
 
-        marginLeft:0,
-        marginTop:0,
+        marginLeft:ANCHOR_POST_GAP,
+        marginTop:ANCHOR_POST_GAP,
         width:(SCREEN_WIDTH - ANCHOR_POST_GAP * 3) / 2,
         height:(SCREEN_WIDTH - ANCHOR_POST_GAP * 3) / 2 + 36,
 

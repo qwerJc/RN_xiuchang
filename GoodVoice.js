@@ -12,6 +12,7 @@ import {
     ImageBackground,
     ActivityIndicator,
 } from 'react-native'
+import AnchorPostDisplay from './AnchorPostDisplay'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -34,38 +35,38 @@ class GoodVoice extends React.Component {
             levelData: [
                 {
                     "title": "全部",
-                    "iconURL": require('./images/LiveLobby/liveLobby_voice_all_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_all_highlight.png'),
+                    "iconURL": require('./images/LiveLobby/live_song_class_all_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/live_song_class_all_highlight.png'),
                     "requestType": "u0",
                 },
                 {
                     "title": "炽星",
-                    "iconURL": require('./images/LiveLobby/liveLobby_voice_blazing_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_blazing_star_highlight.png'),
+                    "iconURL": require('./images/LiveLobby/live_song_class_blazing_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/live_song_class_blazing_star_highlight.png'),
                     "requestType": "r10",
                 },
                 {
                     "title": "超星",
-                    "iconURL": require('./images/LiveLobby/liveLobby_voice_blazing_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_blazing_star_highlight.png'),
+                    "iconURL": require('./images/LiveLobby/live_song_class_super_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/live_song_class_super_star_highlight.png'),
                     "requestType": "r5",
                 },
                 {
                     "title": "巨星",
-                    "iconURL": require('./images/LiveLobby/liveLobby_voice_big_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_big_star_highlight.png'),
+                    "iconURL": require('./images/LiveLobby/live_song_class_big_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/live_song_class_big_star_highlight.png'),
                     "requestType": "r4",
                 },
                 {
                     "title": "明星",
-                    "iconURL": require('./images/LiveLobby/liveLobby_voice_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_star_highlight.png'),
+                    "iconURL": require('./images/LiveLobby/live_song_class_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/live_song_class_star_highlight.png'),
                     "requestType": "r1",
                 },
                 {
                     "title": "红人",
-                    "iconURL": require('./images/LiveLobby/liveLobby_voice_little_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/liveLobby_voice_little_star_highlight.png'),
+                    "iconURL": require('./images/LiveLobby/live_song_class_little_star_normal.png'),
+                    "iconURL_H": require('./images/LiveLobby/live_song_class_little_star_highlight.png'),
                     "requestType": "r2",
                 },
             ],
@@ -104,7 +105,7 @@ class GoodVoice extends React.Component {
                 console.log("【************* False *****************】 ");
                 console.log(error);
                 this.setState({
-                   loadState:-1,
+                    loadState: -1,
                 });
             })
     }
@@ -400,18 +401,17 @@ class GoodVoice extends React.Component {
         }
     }
 
-    render() {
+    renderAnchorCell(item, index) {
         switch (this.state.loadState) {
-            //请求失败
-            case -1: {
-                return (
-                    <View style={styles.failLoadContainer}>
-                        <Text style={styles.failLoadContainerText}>请下拉刷新试试</Text>
-                    </View>
-                );
-                break;
-            }//加载中
-            case  0: {
+            case -1: {//同样存在问题，如果请求失败，则数据为空，不会进行渲染
+                // return (
+                //     <View style={styles.failLoadContainer}>
+                //         <Text style={styles.failLoadContainerText}>请下拉刷新试试</Text>
+                //     </View>
+                // );
+                // break;
+            }
+            case 0: {
                 return (
                     <View style={styles.waitLoadContainer}>
                         <ActivityIndicator
@@ -421,160 +421,168 @@ class GoodVoice extends React.Component {
                     </View>
                 );
                 break;
-            }//请求成功
+            }
             case 1: {
-                //数据不为空 center,contain,cover,repeat,stretch
                 if (this.getDataSource().length > 0) {
                     return (
-                        <View>
-                            <FlatList style={styles.list}
-                                      data={this.getDataSource()}
-                                      numColumns={2}
-                                      getItemLayout={(data, index) => ({
-                                          length: (SCREEN_WIDTH - 24) * 0.61,
-                                          offset: (SCREEN_WIDTH - 24) * 0.61 * index,
-                                          index
-                                      })}
-                                      initialNumToRender={3}
-                                      ListHeaderComponent={this.showChoseLevelView.bind(this)}
-                                      renderItem={({item, index}) =>
-                                          <View style={styles.cell}>
-                                              <TouchableWithoutFeedback onPress={() => this._onSelectAnchor(index)}>
-                                                  <View style={styles.cellItem}>
-                                                      <View style={styles.cellItemImg}>
-                                                          <ImageBackground style={styles.cellItemImg}
-                                                                           source={{uri: item.pospic}}>
-                                                              {this.showTag(item.tagids)}
-                                                          </ImageBackground>
-                                                      </View>
-                                                      <View style={styles.cellItemBottomBar}>
-                                                          <Text style={styles.cellItemBottomBarName}
-                                                                numberOfLines={1}>{item.username}</Text>
-                                                          <Image style={styles.cellItemBottomBarIcon}
-                                                                 source={require('./images/LiveLobby/liveLobby_cell_Item_audienceCount.png')}/>
-                                                          <Text
-                                                              style={styles.cellItemBottomBarCount}>{item.count}</Text>
-                                                      </View>
-                                                  </View>
-                                              </TouchableWithoutFeedback>
-                                          </View>
-                                      }
-                                      keyExtractor={(item, index) => index}
-                            />
+                        <View style={styles.cell}>
+                            <TouchableWithoutFeedback onPress={() => this._onSelectAnchor(index)}>
+                                <View style={styles.cellItem}>
+                                    <View style={styles.cellItemImg}>
+                                        <ImageBackground style={styles.cellItemImg}
+                                                         source={{uri: item.pospic}}>
+                                            {this.showTag(item.tagids)}
+                                        </ImageBackground>
+                                    </View>
+                                    <View style={styles.cellItemBottomBar}>
+                                        <Text style={styles.cellItemBottomBarName}
+                                              numberOfLines={1}>{item.username}</Text>
+                                        <Image style={styles.cellItemBottomBarIcon}
+                                               source={require('./images/LiveLobby2/liveLobby_cell_Item_audienceCount.png')}/>
+                                        <Text
+                                            style={styles.cellItemBottomBarCount}>{item.count}</Text>
+                                    </View>
+                                </View>
+                            </TouchableWithoutFeedback>
                         </View>
-
                     );
-                } else {
-                    //空数据
-                    return (
-                        <ImageBackground style={styles.waitLoadContainer}
-                                         source={require('./images/LiveLobby/liveLobby_mask_empty.png')}
-                                         resizeMode='stretch'>
-                            <Image style={styles.waitLoadContainerIndicator}
-                                   source={require('./images/LiveLobby/liveLobby_icon_anchorEmpty.png')}
-                            />
-                        </ImageBackground>
-                    );
+                } else {//空数据现在有问题,如果为空数据，则dataSource数据为0，不显示cell内容
+                    // return (
+                    //     <ImageBackground style={styles.waitLoadContainer}
+                    //                      source={require('./images/LiveLobby/live_list_icon_anchorEmpty.png')}
+                    //                      resizeMode='stretch'>
+                    //         <Image style={styles.waitLoadContainerIndicator}
+                    //                source={require('./images/LiveLobby/live_list_icon_anchorEmpty.png')}
+                    //         />
+                    //     </ImageBackground>
+                    // );
                 }
-                break;
             }
         }
     }
+
+    render() {
+        return (
+            <View>
+                <FlatList style={styles.list}
+                          data={this.getDataSource()}
+                          numColumns={2}
+                          getItemLayout={(data, index) => ({
+                              length: (SCREEN_WIDTH - 24) * 0.61,
+                              offset: (SCREEN_WIDTH - 24) * 0.61 * index,
+                              index
+                          })}
+                          initialNumToRender={3}
+                          ListHeaderComponent={this.showChoseLevelView.bind(this)}
+                          renderItem={({item, index}) =>
+                              this.renderAnchorCell(item, index)
+                          }
+                          keyExtractor={(item, index) => index}
+                />
+            </View>
+        );
+    }
 }
 
-const styles = StyleSheet.create({
-    levelViewCell: {
-        height: 44,
-        backgroundColor: 'gray',
-    },
-    levelViewItem: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: 44,
-        width: SCREEN_WIDTH / 3,
-        borderWidth: 0.5,
-        borderLeftWidth: 0,
-        borderColor: 'rgba(220, 220, 220, 1)',
-    },
-    list: {
-        backgroundColor: 'rgba(240,240,240,1)',
-        height: SCREEN_HEIGHT - 115,
-    },
-    cell: {
-        marginLeft: 0,
-        marginTop: 0,
-        paddingBottom: 0,
-        //0.61 = 440 / 360; 440:cellHeight ;    360: ItemWidth
-        overflow: 'hidden',
-    },
-    cellItem: {
-        width: (SCREEN_WIDTH - 21) / 2,
-        height: (SCREEN_WIDTH - 21) * 0.61,
-        flexDirection: 'column',
-        marginLeft: 7,
-        marginTop: 7,
-        borderRadius: 10,
-        overflow: 'hidden',
-    },
-    cellItemImg: {
-        width: (SCREEN_WIDTH - 21) / 2,
-        height: (SCREEN_WIDTH - 21) * 0.61 - 36,
-        paddingBottom: 36,
-    },
-    cellItemImgTagBar: {
-        backgroundColor: 'rgba(0,0,0,0)',
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'center',
-        marginTop: (SCREEN_WIDTH - 21) * 0.61 - 59,
-    },
-    cellItemBottomBar: {
-        flexDirection: 'row',
-        justifyContent: 'space-around', //定义了伸缩项目在主轴线的对齐方式
-        alignItems: 'center',
-        height: 36,
-        backgroundColor: 'white',
-    },
-    cellItemBottomBarName: {
-        letterSpacing: 0,
-        marginLeft: 8,
-        marginBottom: 4,
-        width: 90,
-        fontSize: 12,
-    },
-    cellItemBottomBarIcon: {
-        width: 12,
-        height: 10,
-        marginRight: 0,
-        marginLeft: 4,
-        marginBottom: 4,
-    },
-    cellItemBottomBarCount: {
-        width: 40,
-        marginRight: 2,
-        marginBottom: 4,
-        letterSpacing: 0,
-        fontSize: 12,
-    },
-    //WaitLoading
-    waitLoadContainer: {
-        height: SCREEN_HEIGHT - 115,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    waitLoadContainerIndicator: {
-        height: 80,
-    },
-    //FailLoading
-    failLoadContainer:{
-        height: SCREEN_HEIGHT - 115,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    failLoadContainerText:{
-        color:'gray',
-    }
-});
+const
+    styles = StyleSheet.create({
+        levelViewCell: {
+            height: 44,
+            backgroundColor: 'gray',
+        },
+        levelViewItem: {
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: 44,
+            width: SCREEN_WIDTH / 3,
+            borderWidth: 0.5,
+            borderLeftWidth: 0,
+            borderColor: 'rgba(220, 220, 220, 1)',
+        },
+        list: {
+            backgroundColor: 'rgba(240,240,240,1)',
+            height: SCREEN_HEIGHT - 115,
+        },
+        cell: {
+            marginLeft: 0,
+            marginTop: 0,
+            paddingBottom: 0,
+            //0.61 = 440 / 360; 440:cellHeight ;    360: ItemWidth
+            overflow: 'hidden',
+        },
+        cellItem: {
+            width: (SCREEN_WIDTH - 21) / 2,
+            height: (SCREEN_WIDTH - 21) * 0.61,
+            flexDirection: 'column',
+            marginLeft: 7,
+            marginTop: 7,
+            borderRadius: 10,
+            overflow: 'hidden',
+        },
+        cellItemImg: {
+            width: (SCREEN_WIDTH - 21) / 2,
+            height: (SCREEN_WIDTH - 21) * 0.61 - 36,
+            paddingBottom: 36,
+        },
+        cellItemImgTagBar: {
+            backgroundColor: 'rgba(0,0,0,0)',
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            marginTop: (SCREEN_WIDTH - 21) * 0.61 - 59,
+        },
+        cellItemBottomBar: {
+            flexDirection: 'row',
+            justifyContent: 'space-around', //定义了伸缩项目在主轴线的对齐方式
+            alignItems: 'center',
+            height: 36,
+            backgroundColor: 'white',
+        },
+        cellItemBottomBarName: {
+            letterSpacing: 0,
+            marginLeft: 8,
+            marginBottom: 4,
+            width: 90,
+            fontSize: 12,
+        },
+        cellItemBottomBarIcon: {
+            width: 12,
+            height: 10,
+            marginRight: 0,
+            marginLeft: 4,
+            marginBottom: 4,
+        },
+        cellItemBottomBarCount: {
+            width: 40,
+            marginRight: 2,
+            marginBottom: 4,
+            letterSpacing: 0,
+            fontSize: 12,
+        },
+        //WaitLoading
+        waitLoadContainer: {
+            height: SCREEN_HEIGHT - 170,
+            width: SCREEN_WIDTH,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(240,240,240,1)',
+        },
+        waitLoadContainerIndicator: {
+            height: 80,
+        },
+        //FailLoading
+        failLoadContainer: {
+            height: SCREEN_HEIGHT - 170,
+            width: SCREEN_WIDTH,
+            // paddingTop:200,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(240,240,240,1)',
+        },
+        failLoadContainerText: {
+            color: 'gray',
+        }
+    });
 
 module.exports = GoodVoice;

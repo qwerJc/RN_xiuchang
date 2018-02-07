@@ -18,10 +18,11 @@ import {
     Animated,
     TouchableOpacity,
 } from 'react-native';
-import GoodVoice from './GoodVoice'
+// import GoodVoice from './GoodVoice'
 import Dance     from './Dance'
-import Vicinity  from './Vicinity'
-import MiniVideo from './MiniVideo'
+// import Vicinity  from './Vicinity'
+// import MiniVideo from './MiniVideo'
+// import JcTry     from './jcTry'
 
 var SCREEN_WIDTH = Dimensions.get('window').width;
 var SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -86,7 +87,7 @@ export default class App extends Component <{}> {
                     <TouchableOpacity onPress={this._onPressLive}>
                         <View style={styles.bottomBarButton}>
                             <Image
-                                source={require('./images/LiveLobby/Tabbar_Icon_live.png')}
+                                source={require('./images/LiveLobby2/Tabbar_Icon_live.png')}
                                 style={styles.bottomBarButtonIcon}>
 
                             </Image>
@@ -94,17 +95,17 @@ export default class App extends Component <{}> {
                         </View>
                     </TouchableOpacity>
                     <View style={styles.bottomBarButton}>
-                        <Image source={require('./images/LiveLobby/Tabbar_Icon_attention.png')}
+                        <Image source={require('./images/LiveLobby2/Tabbar_Icon_attention.png')}
                                style={styles.bottomBarButtonIcon}></Image>
                         <Text>关注</Text>
                     </View>
                     <View style={styles.bottomBarButton}>
-                        <Image source={require('./images/LiveLobby/Tabbar_Icon_found.png')}
+                        <Image source={require('./images/LiveLobby2/Tabbar_Icon_found.png')}
                                style={styles.bottomBarButtonIcon}></Image>
                         <Text>发现</Text>
                     </View>
                     <View style={styles.bottomBarButton}>
-                        <Image source={require('./images/LiveLobby/Tabbar_Icon_me.png')}
+                        <Image source={require('./images/LiveLobby2/Tabbar_Icon_me.png')}
                                style={styles.bottomBarButtonIcon}></Image>
                         <Text>我</Text>
                     </View>

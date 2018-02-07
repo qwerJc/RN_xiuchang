@@ -23,8 +23,8 @@ class Vicinity extends React.Component {
     constructor(props) {
         super(props);
         this.nowProvinceTitle = '正在定位...';
-        this.anchorDataSource = []; //list的数据
-        this.provinceDataSource = [];
+        this.anchorDataSource = ['']; //list的数据
+        this.provinceDataSource = [''];
         this.state = {
             nowPid: 0,
             provinceMenuListHeight: new Animated.Value(0),
@@ -90,7 +90,7 @@ class Vicinity extends React.Component {
     //展示省份选择列表
     showProvinceMenuListAnimate() {
         // this.provinceMenuListHeight = ProvinceMenuMaxHeight;
-        Animated.imgViewMasking(
+        Animated.timing(
             this.state.iconRotateValue, {
                 toValue: 1,
                 duration: 500,
@@ -142,21 +142,16 @@ class Vicinity extends React.Component {
     judgeProvinceMenuSelect(index) {
         if (this.state.nowPid == this.provinceDataSource[index].pid) {
             return (<Image
-                source={require('./images/LiveLobby/liveLobby_local_menu_cell_selected.png')}
+                source={require('./images/LiveLobby2/liveLobby_local_menu_cell_selected.png')}
             />);
         } else {
             return (<Image
-                source={require('./images/LiveLobby/liveLobby_local_menu_cell_normal.png')}
+                source={require('./images/LiveLobby2/liveLobby_local_menu_cell_normal.png')}
             />);
         }
     }
 
     _onSelect(index) {
-        var s = 'aaaa';
-        console.log(s);
-        s++;
-        console.log(s);
-
         console.log('click: ' + this.anchorDataSource[index].username + ' ' + this.anchorDataSource[index].rid);
     }
 
@@ -170,7 +165,7 @@ class Vicinity extends React.Component {
                     loadState: 0,
                 });
                 this.nowProvinceTitle = this.provinceDataSource[index].title;
-                this.anchorDataSource = ['1'];
+                this.anchorDataSource = [''];
                 this.state.iconRotateValue.setValue(0);
                 Animated.timing(
                     this.state.iconRotateValue, {
@@ -213,7 +208,6 @@ class Vicinity extends React.Component {
                 break;
             }
             case 0: {
-                console.log('qqqq' + item.length);
                 return (
                     <View style={styles.waitLoadContainer}>
                         <ActivityIndicator
@@ -240,7 +234,7 @@ class Vicinity extends React.Component {
                                     <Text style={styles.cellItemBottomBarName}
                                           numberOfLines={1}>{item.username}</Text>
                                     <Image style={styles.cellItemBottomBarIcon}
-                                           source={require('./images/LiveLobby/liveLobby_cell_Item_audienceCount.png')}/>
+                                           source={require('./images/LiveLobby2/liveLobby_cell_Item_audienceCount.png')}/>
                                     <Text
                                         style={styles.cellItemBottomBarCount}>{item.count}</Text>
                                 </View>
@@ -260,7 +254,7 @@ class Vicinity extends React.Component {
                     <View style={styles.provinceMenuButton}>
                         <View style={styles.provinceMenuButtonLeftView}>
                             <Image style={styles.provinceMenuButtonLeftViewIcon}
-                                   source={require('./images/LiveLobby/liveLobby_local_menu_icon.png')}/>
+                                   source={require('./images/LiveLobby/live_list_icon_local.png')}/>
                             <Text style={styles.provinceMenuButtonLeftViewTitle}>
                                 {this.nowProvinceTitle}
                             </Text>
@@ -274,7 +268,7 @@ class Vicinity extends React.Component {
                                     })
                                 }]
                             }]}
-                            source={require('./images/LiveLobby/liveLobby_local_menu_arrow.png')}/>
+                            source={require('./images/LiveLobby/live_list_icon_local_menu_arrow.png')}/>
                     </View>
                 </TouchableWithoutFeedback>
                 <FlatList style={styles.list}
@@ -431,7 +425,7 @@ const styles = StyleSheet.create({
     },
     //FailLoading
     failLoadContainer: {
-        height: SCREEN_HEIGHT - 170,
+        height: SCREEN_HEIGHT - 200,
         width: SCREEN_WIDTH,
         // paddingTop:200,
         justifyContent: 'center',
