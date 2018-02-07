@@ -13,6 +13,8 @@ import {
     ActivityIndicator,
 } from 'react-native'
 
+import AnchorPostDisplay from './AnchorPostDisplay'
+
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -153,6 +155,32 @@ class Dance extends React.Component {
         this.post();
         console.log("xia la shua xin ");
     }
+
+    item(){
+        return(
+            <View style={styles.cell}>
+                <TouchableWithoutFeedback onPress={() => this._onSelect(index)}>
+                    <View style={styles.cellItem}>
+                        <ImageBackground style={styles.cellItemImg}
+                                         source={{uri: item.pospic}}>
+                            <ImageBackground style={styles.cellItemImg}
+                                             source={require('./images/LiveLobby/liveLobby_mask_banner.png')}
+                                             resizeMode='stretch'>
+                                {this.showTag(item.tagids)}
+                            </ImageBackground>
+                        </ImageBackground>
+                        <View style={styles.cellItemBottomBar}>
+                            <Text style={styles.cellItemBottomBarName}
+                                  numberOfLines={1}>{item.username}</Text>
+                            <Image style={styles.cellItemBottomBarIcon}
+                                   source={require('./images/LiveLobby/liveLobby_cell_Item_audienceCount.png')}/>
+                            <Text style={styles.cellItemBottomBarCount}>{item.count}</Text>
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+            </View>
+        );
+    }
     render() {
         switch (this.state.loadState) {
             //请求失败
@@ -190,27 +218,7 @@ class Dance extends React.Component {
                                   onRefresh={this._onRefreshList.bind(this)}
                                   refreshing={this.state.isReFreshing}
                                   renderItem={({item, index}) =>
-                                      <View style={styles.cell}>
-                                          <TouchableWithoutFeedback onPress={() => this._onSelect(index)}>
-                                              <View style={styles.cellItem}>
-                                                  <ImageBackground style={styles.cellItemImg}
-                                                                   source={{uri: item.pospic}}>
-                                                      <ImageBackground style={styles.cellItemImg}
-                                                                       source={require('./images/LiveLobby/liveLobby_mask_banner.png')}
-                                                                       resizeMode='stretch'>
-                                                          {this.showTag(item.tagids)}
-                                                      </ImageBackground>
-                                                  </ImageBackground>
-                                                  <View style={styles.cellItemBottomBar}>
-                                                      <Text style={styles.cellItemBottomBarName}
-                                                            numberOfLines={1}>{item.username}</Text>
-                                                      <Image style={styles.cellItemBottomBarIcon}
-                                                             source={require('./images/LiveLobby/liveLobby_cell_Item_audienceCount.png')}/>
-                                                      <Text style={styles.cellItemBottomBarCount}>{item.count}</Text>
-                                                  </View>
-                                              </View>
-                                          </TouchableWithoutFeedback>
-                                      </View>
+                                      <AnchorPostDisplay pic={item.pic} name={item.username}/>
                                   }
                                   keyExtractor={(item, index) => index}
                         />

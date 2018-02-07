@@ -21,6 +21,7 @@ import {
 import GoodVoice from './GoodVoice'
 import Dance     from './Dance'
 import Vicinity  from './Vicinity'
+import MiniVideo from './MiniVideo'
 
 var SCREEN_WIDTH = Dimensions.get('window').width;
 var SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -72,12 +73,14 @@ export default class App extends Component <{}> {
     }
     //<Dance/>
     //<GoodVoice/>
+    // <Vicinity/>
+    // <MiniVideo/>
     render() {
         return (
             <View style={styles.container}>
                 <View style={styles.headBar}></View>
 
-                <Vicinity/>
+                <Dance/>
 
                 <View style={styles.bottomBar}>
                     <TouchableOpacity onPress={this._onPressLive}>

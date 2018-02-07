@@ -90,7 +90,7 @@ class Vicinity extends React.Component {
     //展示省份选择列表
     showProvinceMenuListAnimate() {
         // this.provinceMenuListHeight = ProvinceMenuMaxHeight;
-        Animated.timing(
+        Animated.imgViewMasking(
             this.state.iconRotateValue, {
                 toValue: 1,
                 duration: 500,
@@ -152,6 +152,11 @@ class Vicinity extends React.Component {
     }
 
     _onSelect(index) {
+        var s = 'aaaa';
+        console.log(s);
+        s++;
+        console.log(s);
+
         console.log('click: ' + this.anchorDataSource[index].username + ' ' + this.anchorDataSource[index].rid);
     }
 
