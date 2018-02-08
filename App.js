@@ -18,11 +18,12 @@ import {
     Animated,
     TouchableOpacity,
 } from 'react-native';
-// import GoodVoice from './GoodVoice'
+
+import GoodVoice from './GoodVoice'
 import Dance     from './Dance'
-// import Vicinity  from './Vicinity'
+import Vicinity  from './Vicinity'
 // import MiniVideo from './MiniVideo'
-// import JcTry     from './jcTry'
+import JcTry     from './jcTry'
 
 var SCREEN_WIDTH = Dimensions.get('window').width;
 var SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -81,7 +82,7 @@ export default class App extends Component <{}> {
             <View style={styles.container}>
                 <View style={styles.headBar}></View>
 
-                <Dance/>
+                <JcTry />
 
                 <View style={styles.bottomBar}>
                     <TouchableOpacity onPress={this._onPressLive}>

@@ -14,6 +14,11 @@ import {
     Easing,
 } from 'react-native'
 
+import AnchorPostDisplay from './AnchorPostDisplay'
+import FailPostDisplay from './FailPostDisplay'
+import LoadPostDisplay from './LoadPostDisplay'
+import EmptyPostDisplay from './EmptyPostDisplay'
+
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -23,7 +28,7 @@ class Vicinity extends React.Component {
     constructor(props) {
         super(props);
         this.nowProvinceTitle = '正在定位...';
-        this.anchorDataSource = ['']; //list的数据
+        this.anchorDataSource = ['loading']; //list的数据
         this.provinceDataSource = [''];
         this.state = {
             nowPid: 0,
@@ -56,17 +61,27 @@ class Vicinity extends React.Component {
             .then((response) => response.json())
             .then((json) => {
                 console.log("【************* Success *****************】 ");
-                this.anchorDataSource = json.content.roomList;
+                if (json.content.roomList.length > 0) {
+                    this.anchorDataSource = json.content.roomList;
+                    this.setState({
+                        nowPid: json.content.pid,
+                        loadState: 1,
+                    });
+                }else {
+                    this.anchorDataSource = ['empty'];
+                    this.setState({
+                        nowPid: json.content.pid,
+                        loadState: 2,
+                    });
+                }
                 this.provinceDataSource = json.content.provinceNumAry;
                 this.nowProvinceTitle = json.content.ptitle;
-                this.setState({
-                    nowPid: json.content.pid,
-                    loadState: 1,
-                });
+
             })
             .catch((error) => {
                 console.log("【************* False *****************】 ");
                 console.log(error);
+                this.anchorDataSource = ['false'];
                 this.setState({
                     loadState: -1,
                 });
@@ -151,10 +166,6 @@ class Vicinity extends React.Component {
         }
     }
 
-    _onSelect(index) {
-        console.log('click: ' + this.anchorDataSource[index].username + ' ' + this.anchorDataSource[index].rid);
-    }
-
     _onSelectProvince(index) {
         if (this.state.isCanClick) {//如果动画结束，可以点击
             if (this.state.nowPid != this.provinceDataSource[index].pid) {
@@ -165,7 +176,7 @@ class Vicinity extends React.Component {
                     loadState: 0,
                 });
                 this.nowProvinceTitle = this.provinceDataSource[index].title;
-                this.anchorDataSource = [''];
+                this.anchorDataSource = ['loading'];
                 this.state.iconRotateValue.setValue(0);
                 Animated.timing(
                     this.state.iconRotateValue, {
@@ -196,52 +207,23 @@ class Vicinity extends React.Component {
         }
     }
 
-    renderAnchorCell(item, index) {
+    returnAnchorItem(item, index) {
         switch (this.state.loadState) {
             //请求失败
             case -1: {//data.length = 1
-                return (
-                    <View style={styles.failLoadContainer}>
-                        <Text style={styles.failLoadContainerText}>请下拉刷新试试</Text>
-                    </View>
-                );
+                return (<FailPostDisplay layoutType={0}/>);
                 break;
             }
             case 0: {
-                return (
-                    <View style={styles.waitLoadContainer}>
-                        <ActivityIndicator
-                            animating={this.state.animating}
-                            style={styles.waitLoadContainerIndicator}
-                            size="large"/>
-                    </View>
-                );
+                return (<LoadPostDisplay layoutType={0}/>);
                 break;
             }
             case 1: {
-                return (
-                    <View style={styles.cell}>
-                        <TouchableWithoutFeedback onPress={() => this._onSelect(index)}>
-                            <View style={styles.cellItem}>
-                                <ImageBackground style={styles.cellItemImg}
-                                                 source={{uri: item.pospic}}>
-                                    <ImageBackground style={styles.cellItemImg}
-                                                     source={require('./images/LiveLobby/liveLobby_mask_banner.png')}
-                                                     resizeMode='stretch'>
-                                    </ImageBackground>
-                                </ImageBackground>
-                                <View style={styles.cellItemBottomBar}>
-                                    <Text style={styles.cellItemBottomBarName}
-                                          numberOfLines={1}>{item.username}</Text>
-                                    <Image style={styles.cellItemBottomBarIcon}
-                                           source={require('./images/LiveLobby2/liveLobby_cell_Item_audienceCount.png')}/>
-                                    <Text
-                                        style={styles.cellItemBottomBarCount}>{item.count}</Text>
-                                </View>
-                            </View>
-                        </TouchableWithoutFeedback>
-                    </View>
-                );
+                return (<AnchorPostDisplay dataDic={item} tagsDic={this.state.tagInfo}/>);
+                break;
+            }
+            case 2: {
+                return (<EmptyPostDisplay layoutType={0}/>);
                 break;
             }
         }
@@ -279,7 +261,7 @@ class Vicinity extends React.Component {
                               offset: (SCREEN_WIDTH - 24) * 0.61 * index,
                               index
                           })}
-                          renderItem={({item, index}) => this.renderAnchorCell(item, index)
+                          renderItem={({item, index}) => this.returnAnchorItem(item, index)
                           }
                           keyExtractor={(item, index) => index}
                 />
@@ -412,29 +394,6 @@ const styles = StyleSheet.create({
         letterSpacing: 0,
         fontSize: 12,
     },
-    //WaitLoading
-    waitLoadContainer: {
-        height: SCREEN_HEIGHT - 170,
-        width: SCREEN_WIDTH,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(240,240,240,1)',
-    },
-    waitLoadContainerIndicator: {
-        height: 80,
-    },
-    //FailLoading
-    failLoadContainer: {
-        height: SCREEN_HEIGHT - 200,
-        width: SCREEN_WIDTH,
-        // paddingTop:200,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(240,240,240,1)',
-    },
-    failLoadContainerText: {
-        color: 'gray',
-    }
 });
 
 module.exports = Vicinity;

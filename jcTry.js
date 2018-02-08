@@ -3,18 +3,14 @@ import React, {
 } from 'react';
 import {
     StyleSheet,
-    View,
-    Text,
     FlatList,
-    TouchableWithoutFeedback,
     Dimensions,
-    Image,
-    ImageBackground,
-    ActivityIndicator,
-    SectionList,
 } from 'react-native'
 
 import AnchorPostDisplay from './AnchorPostDisplay'
+import FailPostDisplay from './FailPostDisplay'
+import LoadPostDisplay from './LoadPostDisplay'
+import EmptyPostDisplay from './EmptyPostDisplay'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -23,9 +19,8 @@ class jcTry extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            isReFreshing: true,      //是否需要下拉刷新
-            loadState: 0,    //加载状态。-1为加载失败，0为加载中，1为加载成功
-            dataSource: [], //list的数据
+            loadState: 0,    //加载状态。-1为加载失败，0为加载中，1为加载成功,2为空数据
+            dataSource: ['loading'], //list的数据,其中'loading'，empty，false只是为了向dataSource中填充数据，否则datasource数量为0，不会走render渲染
             tagInfo: [],    //所有tag标签的数据
         };
     }
@@ -53,214 +48,72 @@ class jcTry extends React.Component {
             .then((response) => response.json())
             .then((json) => {
                 console.log("【************* Success *****************】 ");
-                this.setState({
-                    dataSource: json.content.u1,
-                    tagInfo: json.content.tagInfo,
-                    loadState: 1,
-                    isReFreshing: false,
-                });
+                // console.log(json.content.u1);
+                if (json.content.u1.length > 0) {
+                    this.setState({
+                        dataSource: json.content.u1,
+                        tagInfo: json.content.tagInfo,
+                        loadState: 1,
+                    });
+                } else {
+                    this.setState({
+                        dataSource: ['empty'],
+                        tagInfo: json.content.tagInfo,
+                        loadState: 2,
+                    })
+                }
+
             })
             .catch((error) => {
                 console.log("【************* False *****************】 ");
                 console.log(error)
                 this.setState({
-                    isReFreshing: false,
+                    dataSource: ['false'],
                     loadState: -1,
                 });
             })
     }
 
-    _onSelect(index) {
-        console.log('click: ' + this.state.dataSource[index].username + ' ' + this.state.dataSource[index].rid);
-    }
-
-    //tagIDs 为 每个cellItem的tagID的集合
-    showTag(tagIDs) {
-        if (tagIDs.length > 0) {
-            //根据当前Item所需要渲染的Tag数目进行选择加载，当前最多支持4个Tag
-            switch (tagIDs.length) {
-                case 1: {
-                    return (
-                        <View style={styles.cellItemImgTagBar}>
-                            {this.getTagView(tagIDs[0], true)}
-                        </View>
-                    );
-                    break;
-                }
-                case 2: {
-                    return (
-                        <View style={styles.cellItemImgTagBar}>
-                            {this.getTagView(tagIDs[0], true)}
-                            {this.getTagView(tagIDs[1], false)}
-                        </View>
-                    );
-                    break;
-                }
-                case 3: {
-                    return (
-                        <View style={styles.cellItemImgTagBar}>
-                            {this.getTagView(tagIDs[0], true)}
-                            {this.getTagView(tagIDs[1], false)}
-                            {this.getTagView(tagIDs[2], false)}
-                        </View>
-                    );
-                    break;
-                }
-                case 4: {
-                    return (
-                        <View style={styles.cellItemImgTagBar}>
-                            {this.getTagView(tagIDs[0], true)}
-                            {this.getTagView(tagIDs[1], false)}
-                            {this.getTagView(tagIDs[2], false)}
-                            {this.getTagView(tagIDs[4], false)}
-                        </View>
-                    );
-                    break;
-                }
+    returnAnchorItem(item) {
+        console.log(this.state.loadState);
+        switch (this.state.loadState) {
+            //请求失败
+            case -1: {//data.length = 1
+                return (<FailPostDisplay layoutType={2}/>);
+                break;
+            }
+            case 0: {
+                return (<LoadPostDisplay layoutType={2}/>);
+                break;
+            }
+            case 1: {
+                return (<AnchorPostDisplay dataDic={item} tagsDic={this.state.tagInfo}/>);
+                break;
+            }
+            case 2: {
+                return (<EmptyPostDisplay layoutType={2}/>);
+                break;
             }
         }
-    }
-
-    //获取每个Tag标签的View，因为第一个标签和其余标签样式不同，所以根据 isFirstTag 来判断加载哪种样式
-    getTagView(tagID, isFirstTag) {
-        var index = 0;
-        while (index < this.state.tagInfo.length) {
-            if (tagID == this.state.tagInfo[index].id) {
-                if (isFirstTag) {
-                    return (<Image
-                        style={{
-                            width: this.state.tagInfo[index].viewPicSmall.img2xw / 2,
-                            height: this.state.tagInfo[index].viewPicSmall.img2xh / 2,
-                            marginLeft: 8,
-                            marginBottom: 5,
-                        }}
-                        source={{uri: this.state.tagInfo[index].viewPicSmall.img2x}}/>);
-                } else {
-                    return (<Image
-                        style={{
-                            width: this.state.tagInfo[index].viewPicSmall.img2xw / 2,
-                            height: this.state.tagInfo[index].viewPicSmall.img2xh / 2,
-                            marginLeft: 5,
-                            marginBottom: 5,
-                        }}
-                        source={{uri: this.state.tagInfo[index].viewPicSmall.img2x}}/>);
-                }
-            }
-            index++;
-        }
-    }
-
-    _onRefreshList() {
-        this.setState({
-            isReFreshing: true,
-        });
-        this.post();
-        console.log("xia la shua xin ");
-    }
-
-    item(item, index) {
-        return (
-            <View style={styles.cell}>
-                <TouchableWithoutFeedback onPress={() => this._onSelect(index)}>
-                    <View style={styles.cellItem}>
-                        <ImageBackground style={styles.cellItemImg}
-                                         source={{uri: item.pospic}}>
-                            <ImageBackground style={styles.cellItemImg}
-                                             source={require('./images/LiveLobby/liveLobby_mask_banner.png')}
-                                             resizeMode='stretch'>
-                                {this.showTag(item.tagids)}
-                            </ImageBackground>
-                        </ImageBackground>
-                        <View style={styles.cellItemBottomBar}>
-                            <Text style={styles.cellItemBottomBarName}
-                                  numberOfLines={1}>{item.username}</Text>
-                            <Image style={styles.cellItemBottomBarIcon}
-                                   source={require('./images/LiveLobby/liveLobby_cell_Item_audienceCount.png')}/>
-                            <Text style={styles.cellItemBottomBarCount}>{item.count}</Text>
-                        </View>
-                    </View>
-                </TouchableWithoutFeedback>
-            </View>
-        );
-    }
-
-    item1(item,index){
-        return(
-            <AnchorPostDisplay dataDic={item}/>
-        );
     }
 
     render() {
-        switch (this.state.loadState) {
-            //请求失败
-            case -1: {
-                return (
-                    <View style={styles.failLoadContainer}>
-                        <Text style={styles.failLoadContainerText}>请下拉刷新试试</Text>
-                    </View>
-                );
-                break;
-            }//加载中
-            case  0: {
-                return (
-                    <View style={styles.waitLoadContainer}>
-                        <ActivityIndicator
-                            animating={this.state.animating}
-                            style={styles.waitLoadContainerIndicator}
-                            size="large"/>
-                    </View>
-                );
-                break;
-            }//请求成功
-            case 1: {
-                //数据不为空 center,contain,cover,repeat,stretch
-                if (this.state.dataSource.length > 0) {
-                    return (
-                        <SectionList
-                            style={styles.list}
-                            renderItem={({item, index}) =>this.item(item, index)
-                            }
-                            numColumns={22}
-                            renderSectionHeader={this._renderSectionHeader}
-                            showsVerticalScrollIndicator={false}
-                            sections={[ // 不同section渲染相同类型的子组件
-                                {data: this.state.dataSource, title:'zzz'},
-                            ]}
-                            keyExtractor={(item, index) => index}
-                        />
-                    );
-                    break;
-                } else {
-                    //空数据
-                    return (
-                        <ImageBackground style={styles.waitLoadContainer}
-                                         source={require('./images/LiveLobby/liveLobby_mask_empty.png')}
-                                         resizeMode='stretch'>
-                            <SectionList
-                                style={styles.list}
-                                data={this.state.dataSource}
-                                numColumns={2}
-                                initialNumToRender={3}
-                                getItemLayout={(data, index) => ({
-                                    length: (SCREEN_WIDTH - 24) * 0.61,
-                                    offset: (SCREEN_WIDTH - 24) * 0.61 * index,
-                                    index
-                                })}
-                                onRefresh={this._onRefreshList.bind(this)}
-                                refreshing={this.state.isReFreshing}
-                                renderItem={({item, index}) =>this.item(item, index)
-                                }
-                                keyExtractor={(item, index) => index}
-                            />
-                            <Image style={styles.waitLoadContainerIndicator}
-                                   source={require('./images/LiveLobby/liveLobby_icon_anchorEmpty.png')}
-                            />
-                        </ImageBackground>
-                    );
-                    break;
-                }
-            }
-        }
+        return (
+            <FlatList style={styles.list}
+                      data={this.state.dataSource}
+                      numColumns={2}
+                      initialNumToRender={3}
+                      getItemLayout={(data, index) => ({
+                          length: (SCREEN_WIDTH - 24) * 0.61,
+                          offset: (SCREEN_WIDTH - 24) * 0.61 * index,
+                          index
+                      })}
+                      renderItem={({item, index}) =>
+                          this.returnAnchorItem(item)
+                      }
+                      keyExtractor={(item, index) => index}
+            />
+        );
     }
 }
 
@@ -324,24 +177,6 @@ const styles = StyleSheet.create({
         letterSpacing: 0,
         fontSize: 12,
     },
-    //WaitLoading
-    waitLoadContainer: {
-        height: SCREEN_HEIGHT - 115,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    waitLoadContainerIndicator: {
-        height: 80,
-    },
-    //FailLoading
-    failLoadContainer: {
-        height: SCREEN_HEIGHT - 115,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    failLoadContainerText: {
-        color: 'gray',
-    }
 });
 
 module.exports = jcTry;

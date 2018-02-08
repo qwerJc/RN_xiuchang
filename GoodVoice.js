@@ -9,10 +9,12 @@ import {
     TouchableWithoutFeedback,
     Dimensions,
     Image,
-    ImageBackground,
-    ActivityIndicator,
 } from 'react-native'
+
 import AnchorPostDisplay from './AnchorPostDisplay'
+import FailPostDisplay from './FailPostDisplay'
+import LoadPostDisplay from './LoadPostDisplay'
+import EmptyPostDisplay from './EmptyPostDisplay'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -25,12 +27,12 @@ class GoodVoice extends React.Component {
         this.state = {
             loadState: 0,    //加载状态。-1为加载失败，0为加载中，1为加载成功
             nowLevelChose: 0,
-            dataSource_u0: [],
-            dataSource_r10: [],
-            dataSource_r5: [],
-            dataSource_r4: [],
-            dataSource_r1: [],
-            dataSource_r2: [],
+            dataSource_u0: ['loading'],
+            dataSource_r10: ['loading'],
+            dataSource_r5: ['loading'],
+            dataSource_r4: ['loading'],
+            dataSource_r1: ['loading'],
+            dataSource_r2: ['loading'],
             tagInfo: [],
             levelData: [
                 {
@@ -92,104 +94,32 @@ class GoodVoice extends React.Component {
             .then((response) => response.json())
             .then((json) => {
                 console.log("【************* Success *****************】 ");
-                // console.log(json)
-                // console.log(json.content.u0[0].username)
                 console.log(json.content.tagInfo.length);
-                this.setState({
-                    loadState: 1,
-                    dataSource_u0: json.content.u0,
-                    tagInfo: json.content.tagInfo,
-                });
+                if (json.content.tagInfo.length>0){
+                    this.setState({
+                        loadState: 1,
+                        dataSource_u0: json.content.u0,
+                        tagInfo: json.content.tagInfo,
+                    });
+                }else {
+                    this.setState({
+                        loadState: 2,
+                        dataSource_u0: ['empty'],
+                    });
+                }
+
             })
             .catch((error) => {
                 console.log("【************* False *****************】 ");
                 console.log(error);
                 this.setState({
                     loadState: -1,
+                    dataSource_u0: ['false'],
                 });
             })
     }
 
-    _onSelectAnchor(index) {
-        console.log('click: ' + this.state.dataSource[index].username + ' ' + this.state.dataSource[index].rid);
-    }
-
-    //tagIDs 为 每个cellItem的tagID的集合
-    showTag(tagIDs) {
-        if (tagIDs.length > 0) {
-            switch (tagIDs.length) {
-                case 1: {
-                    return (
-                        <View style={styles.cellItemImgTagBar}>
-                            {this.getTagView(tagIDs[0], true)}
-                        </View>
-                    );
-                    break;
-                }
-                case 2: {
-                    return (
-                        <View style={styles.cellItemImgTagBar}>
-                            {this.getTagView(tagIDs[0], true)}
-                            {this.getTagView(tagIDs[1], false)}
-                        </View>
-                    );
-                    break;
-                }
-                case 3: {
-                    return (
-                        <View style={styles.cellItemImgTagBar}>
-                            {this.getTagView(tagIDs[0], true)}
-                            {this.getTagView(tagIDs[1], false)}
-                            {this.getTagView(tagIDs[2], false)}
-                        </View>
-                    );
-                    break;
-                }
-                case 4: {
-                    return (
-                        <View style={styles.cellItemImgTagBar}>
-                            {this.getTagView(tagIDs[0], true)}
-                            {this.getTagView(tagIDs[1], false)}
-                            {this.getTagView(tagIDs[2], false)}
-                            {this.getTagView(tagIDs[4], false)}
-                        </View>
-                    );
-                    break;
-                }
-            }
-        }
-    }
-
-    getTagView(tagID, isFirstTag) {
-        var index = 0;
-        while (index < this.state.tagInfo.length) {
-            if (tagID == this.state.tagInfo[index].id) {
-                if (isFirstTag) {
-                    return (<Image
-                        style={{
-                            width: this.state.tagInfo[index].viewPicSmall.img2xw / 2,
-                            height: this.state.tagInfo[index].viewPicSmall.img2xh / 2,
-                            marginLeft: 8,
-                            marginBottom: 5,
-                        }}
-                        source={{uri: this.state.tagInfo[index].viewPicSmall.img2x}}/>);
-                } else {
-                    return (<Image
-                        style={{
-                            width: this.state.tagInfo[index].viewPicSmall.img2xw / 2,
-                            height: this.state.tagInfo[index].viewPicSmall.img2xh / 2,
-                            marginLeft: 5,
-                            marginBottom: 5,
-                        }}
-                        source={{uri: this.state.tagInfo[index].viewPicSmall.img2x}}/>);
-                }
-            }
-            index++;
-        }
-    }
-
     showChoseLevelView() {
-        // console.log(this.state.nowLevelChose);
         return (
             <FlatList style={styles.levelView}
                       data={this.state.levelData}
@@ -401,62 +331,23 @@ class GoodVoice extends React.Component {
         }
     }
 
-    renderAnchorCell(item, index) {
+    returnAnchorItem(item, index) {
         switch (this.state.loadState) {
             case -1: {//同样存在问题，如果请求失败，则数据为空，不会进行渲染
-                // return (
-                //     <View style={styles.failLoadContainer}>
-                //         <Text style={styles.failLoadContainerText}>请下拉刷新试试</Text>
-                //     </View>
-                // );
-                // break;
+                return (<FailPostDisplay layoutType={1}/>);
+                break;
             }
             case 0: {
-                return (
-                    <View style={styles.waitLoadContainer}>
-                        <ActivityIndicator
-                            animating={this.state.animating}
-                            style={styles.waitLoadContainerIndicator}
-                            size="large"/>
-                    </View>
-                );
+                return (<LoadPostDisplay layoutType={1}/>);
                 break;
             }
             case 1: {
-                if (this.getDataSource().length > 0) {
-                    return (
-                        <View style={styles.cell}>
-                            <TouchableWithoutFeedback onPress={() => this._onSelectAnchor(index)}>
-                                <View style={styles.cellItem}>
-                                    <View style={styles.cellItemImg}>
-                                        <ImageBackground style={styles.cellItemImg}
-                                                         source={{uri: item.pospic}}>
-                                            {this.showTag(item.tagids)}
-                                        </ImageBackground>
-                                    </View>
-                                    <View style={styles.cellItemBottomBar}>
-                                        <Text style={styles.cellItemBottomBarName}
-                                              numberOfLines={1}>{item.username}</Text>
-                                        <Image style={styles.cellItemBottomBarIcon}
-                                               source={require('./images/LiveLobby2/liveLobby_cell_Item_audienceCount.png')}/>
-                                        <Text
-                                            style={styles.cellItemBottomBarCount}>{item.count}</Text>
-                                    </View>
-                                </View>
-                            </TouchableWithoutFeedback>
-                        </View>
-                    );
-                } else {//空数据现在有问题,如果为空数据，则dataSource数据为0，不显示cell内容
-                    // return (
-                    //     <ImageBackground style={styles.waitLoadContainer}
-                    //                      source={require('./images/LiveLobby/live_list_icon_anchorEmpty.png')}
-                    //                      resizeMode='stretch'>
-                    //         <Image style={styles.waitLoadContainerIndicator}
-                    //                source={require('./images/LiveLobby/live_list_icon_anchorEmpty.png')}
-                    //         />
-                    //     </ImageBackground>
-                    // );
-                }
+                return (<AnchorPostDisplay dataDic={item} tagsDic={this.state.tagInfo}/>);
+                break;
+            }
+            case 2: {
+                return (<EmptyPostDisplay layoutType={1}/>);
+                break;
             }
         }
     }
@@ -475,7 +366,7 @@ class GoodVoice extends React.Component {
                           initialNumToRender={3}
                           ListHeaderComponent={this.showChoseLevelView.bind(this)}
                           renderItem={({item, index}) =>
-                              this.renderAnchorCell(item, index)
+                              this.returnAnchorItem(item, index)
                           }
                           keyExtractor={(item, index) => index}
                 />
