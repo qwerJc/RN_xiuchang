@@ -28,7 +28,7 @@ class Vicinity extends React.Component {
     constructor(props) {
         super(props);
         this.nowProvinceTitle = '正在定位...';
-        this.anchorDataSource = ['loading']; //list的数据
+        this.anchorDataSource = ['null']; //list的数据
         this.provinceDataSource = [''];
         this.state = {
             nowPid: 0,
@@ -62,13 +62,15 @@ class Vicinity extends React.Component {
             .then((json) => {
                 console.log("【************* Success *****************】 ");
                 if (json.content.roomList.length > 0) {
+                    //请求成功 且 返回数据不为空 替换当前数据
                     this.anchorDataSource = json.content.roomList;
                     this.setState({
                         nowPid: json.content.pid,
                         loadState: 1,
                     });
                 }else {
-                    this.anchorDataSource = ['empty'];
+                    //请求成功 但 返回数据为空 替换当前数据
+                    this.anchorDataSource = ['null'];
                     this.setState({
                         nowPid: json.content.pid,
                         loadState: 2,
@@ -76,12 +78,12 @@ class Vicinity extends React.Component {
                 }
                 this.provinceDataSource = json.content.provinceNumAry;
                 this.nowProvinceTitle = json.content.ptitle;
-
             })
             .catch((error) => {
                 console.log("【************* False *****************】 ");
                 console.log(error);
-                this.anchorDataSource = ['false'];
+                //请求失败 不加载旧数据 直接渲染'请求错误'页面
+                this.anchorDataSource = ['null'];
                 this.setState({
                     loadState: -1,
                 });

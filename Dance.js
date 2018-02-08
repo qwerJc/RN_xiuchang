@@ -18,10 +18,10 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 class Dance extends React.Component {
     constructor(props) {
         super(props);
+        this.anchorDataSource = ['null'];//主播list数据源，默认必须有个字符串以保证空数据或请求错误时渲染界面
+        this.tagInfo = [];//所有tag标签的数据
         this.state = {
             loadState: 0,    //加载状态。-1为加载失败，0为加载中，1为加载成功,2为空数据
-            dataSource: ['loading'], //list的数据,其中'loading'，empty，false只是为了向dataSource中填充数据，否则datasource数量为0，不会走render渲染
-            tagInfo: [],    //所有tag标签的数据
         };
     }
 
@@ -48,34 +48,45 @@ class Dance extends React.Component {
             .then((response) => response.json())
             .then((json) => {
                 console.log("【************* Success *****************】 ");
-                // console.log(json.content.u1);
                 if (json.content.u1.length > 0) {
+                    //请求成功 且 返回数据不为空 替换当前数据
+                    this.anchorDataSource = json.content.u1;
+                    this.tagInfo = json.content.tagInfo;
                     this.setState({
-                        dataSource: json.content.u1,
-                        tagInfo: json.content.tagInfo,
                         loadState: 1,
                     });
                 } else {
-                    this.setState({
-                        dataSource: ['empty'],
-                        tagInfo: json.content.tagInfo,
-                        loadState: 2,
-                    })
+                    if (this.anchorDataSource[0] == 'null'){
+                        //请求成功 但 返回空数据 且 之前无请求成功的数据 渲染空页面
+                        this.setState({
+                            loadState: 2,
+                        })
+                    }else {
+                        //请求成功 返回空数据 但 之前存在请求成功的数据，渲染旧页面
+                        this.setState({
+                            loadState: 1,
+                        })
+                    }
                 }
-
             })
             .catch((error) => {
                 console.log("【************* False *****************】 ");
-                console.log(error)
-                this.setState({
-                    dataSource: ['false'],
-                    loadState: -1,
-                });
+                console.log(error);
+                if (this.anchorDataSource[0] == 'null') {
+                    //请求失败 且 之前无请求成功的数据 渲染"请求错误"页面
+                    this.setState({
+                        loadState: -1,
+                    })
+                } else {
+                    //请求失败 但 之前存在请求成功的数据， 渲染旧页面
+                    this.setState({
+                        loadState: 1,
+                    });
+                }
             })
     }
 
     returnAnchorItem(item) {
-        console.log(this.state.loadState);
         switch (this.state.loadState) {
             //请求失败
             case -1: {//data.length = 1
@@ -87,7 +98,7 @@ class Dance extends React.Component {
                 break;
             }
             case 1: {
-                return (<AnchorPostDisplay dataDic={item} tagsDic={this.state.tagInfo}/>);
+                return (<AnchorPostDisplay dataDic={item} tagsDic={this.tagInfo}/>);
                 break;
             }
             case 2: {
@@ -97,10 +108,19 @@ class Dance extends React.Component {
         }
     }
 
+    returnDataSource(){
+        // return (this.anchorDataSource);
+        if(this.state.loadState == 0){
+            //等待状态,返回单cell
+            return (['null']);
+        }else {
+            return (this.anchorDataSource);
+        }
+    }
     render() {
         return (
             <FlatList style={styles.list}
-                      data={this.state.dataSource}
+                      data={this.returnDataSource()}
                       numColumns={2}
                       initialNumToRender={3}
                       getItemLayout={(data, index) => ({

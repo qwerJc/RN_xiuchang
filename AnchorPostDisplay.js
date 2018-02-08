@@ -99,7 +99,7 @@ export default class AnchorPostDisplay extends Component {
                 <View style={styles.anchorPicContainer}>
                     <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby/live_list_placeholder_1242.png')}>
                     </Image>
-                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pic}}>
+                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pospic}}>
                     </Image>
                     <Image style={styles.anchorShadow} source={require('./images/LiveLobby/live_list_image_banner_mask.png')}>
                     </Image>
@@ -110,7 +110,7 @@ export default class AnchorPostDisplay extends Component {
                 <View style={styles.anchorPicContainer}>
                     <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby/live_list_placeholder_750.png')}>
                     </Image>
-                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pic}}>
+                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pospic}}>
                     </Image>
                     <Image style={styles.anchorShadow} source={require('./images/LiveLobby/live_list_image_banner_mask.png')}>
                     </Image>
@@ -121,7 +121,7 @@ export default class AnchorPostDisplay extends Component {
                 <View style={styles.anchorPicContainer}>
                     <Image style={styles.anchorPicPlaceholder} source={require('./images/LiveLobby/live_list_placeholder_640.png')}>
                     </Image>
-                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pic}}>
+                    <Image style={styles.anchorPic} source={{uri: this.props.dataDic.pospic}}>
                     </Image>
                     <Image style={styles.anchorShadow} source={require('./images/LiveLobby/live_list_image_banner_mask.png')}>
                     </Image>

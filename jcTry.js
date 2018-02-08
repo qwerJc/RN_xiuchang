@@ -30,6 +30,10 @@ class jcTry extends React.Component {
     }
 
     post() {
+
+        var jc=''
+
+
         var formdata = new FormData();
         formdata.append("rate", '1')
         formdata.append("type", 'u1')

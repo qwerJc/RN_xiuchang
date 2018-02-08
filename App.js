@@ -82,7 +82,7 @@ export default class App extends Component <{}> {
             <View style={styles.container}>
                 <View style={styles.headBar}></View>
 
-                <JcTry />
+                <GoodVoice />
 
                 <View style={styles.bottomBar}>
                     <TouchableOpacity onPress={this._onPressLive}>

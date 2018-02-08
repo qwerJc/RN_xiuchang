@@ -11,6 +11,8 @@ import {
     Image,
 } from 'react-native'
 
+//点击选择后没有判空
+
 import AnchorPostDisplay from './AnchorPostDisplay'
 import FailPostDisplay from './FailPostDisplay'
 import LoadPostDisplay from './LoadPostDisplay'
@@ -24,61 +26,60 @@ var isNeedupLoad = [true, true, true, true, true, true];
 class GoodVoice extends React.Component {
     constructor(props) {
         super(props);
+        this.anchorDataSource = [['null'],['null'],['null'],['null'],['null'],['null']];//二维数组，其中0-5分别对应全部、炽星、超星、巨星、明星、红人
+        //如果每一项中不为null则会导致不进Flatlist的render（因为绑定的数据源数量为0），所以必须写一项。
+        this.tagInfo = [];
+        this.levelData = [
+            {
+                "title": "全部",
+                "iconURL": require('./images/LiveLobby/live_song_class_all_normal.png'),
+                "iconURL_H": require('./images/LiveLobby/live_song_class_all_highlight.png'),
+                "requestType": "u0",
+            },
+            {
+                "title": "炽星",
+                "iconURL": require('./images/LiveLobby/live_song_class_blazing_star_normal.png'),
+                "iconURL_H": require('./images/LiveLobby/live_song_class_blazing_star_highlight.png'),
+                "requestType": "r10",
+            },
+            {
+                "title": "超星",
+                "iconURL": require('./images/LiveLobby/live_song_class_super_star_normal.png'),
+                "iconURL_H": require('./images/LiveLobby/live_song_class_super_star_highlight.png'),
+                "requestType": "r5",
+            },
+            {
+                "title": "巨星",
+                "iconURL": require('./images/LiveLobby/live_song_class_big_star_normal.png'),
+                "iconURL_H": require('./images/LiveLobby/live_song_class_big_star_highlight.png'),
+                "requestType": "r4",
+            },
+            {
+                "title": "明星",
+                "iconURL": require('./images/LiveLobby/live_song_class_star_normal.png'),
+                "iconURL_H": require('./images/LiveLobby/live_song_class_star_highlight.png'),
+                "requestType": "r1",
+            },
+            {
+                "title": "红人",
+                "iconURL": require('./images/LiveLobby/live_song_class_little_star_normal.png'),
+                "iconURL_H": require('./images/LiveLobby/live_song_class_little_star_highlight.png'),
+                "requestType": "r2",
+            },
+        ];
         this.state = {
-            loadState: 0,    //加载状态。-1为加载失败，0为加载中，1为加载成功
-            nowLevelChose: 0,
-            dataSource_u0: ['loading'],
-            dataSource_r10: ['loading'],
-            dataSource_r5: ['loading'],
-            dataSource_r4: ['loading'],
-            dataSource_r1: ['loading'],
-            dataSource_r2: ['loading'],
-            tagInfo: [],
-            levelData: [
-                {
-                    "title": "全部",
-                    "iconURL": require('./images/LiveLobby/live_song_class_all_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/live_song_class_all_highlight.png'),
-                    "requestType": "u0",
-                },
-                {
-                    "title": "炽星",
-                    "iconURL": require('./images/LiveLobby/live_song_class_blazing_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/live_song_class_blazing_star_highlight.png'),
-                    "requestType": "r10",
-                },
-                {
-                    "title": "超星",
-                    "iconURL": require('./images/LiveLobby/live_song_class_super_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/live_song_class_super_star_highlight.png'),
-                    "requestType": "r5",
-                },
-                {
-                    "title": "巨星",
-                    "iconURL": require('./images/LiveLobby/live_song_class_big_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/live_song_class_big_star_highlight.png'),
-                    "requestType": "r4",
-                },
-                {
-                    "title": "明星",
-                    "iconURL": require('./images/LiveLobby/live_song_class_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/live_song_class_star_highlight.png'),
-                    "requestType": "r1",
-                },
-                {
-                    "title": "红人",
-                    "iconURL": require('./images/LiveLobby/live_song_class_little_star_normal.png'),
-                    "iconURL_H": require('./images/LiveLobby/live_song_class_little_star_highlight.png'),
-                    "requestType": "r2",
-                },
-            ],
+            loadState: 0,    //加载状态。-1为加载失败，0为加载中，1为加载成功,2为空数据
+            nowLevelChose: 0,   //level标签选择，0-5 同 anchorDataSource
         };
     }
 
     componentWillMount() {
+        this.post(0);
+    }
+    post(nowChosenLevel){
         var formdata = new FormData();
         formdata.append("rate", '1');
-        formdata.append("type", 'u0');
+        formdata.append("type", this.levelData[nowChosenLevel].requestType);
         formdata.append("size", '0');
         formdata.append("p", '0');
         formdata.append("av", '2.1');
@@ -94,35 +95,49 @@ class GoodVoice extends React.Component {
             .then((response) => response.json())
             .then((json) => {
                 console.log("【************* Success *****************】 ");
-                console.log(json.content.tagInfo.length);
-                if (json.content.tagInfo.length>0){
+                if (this.getJsonContentData(nowChosenLevel, json).length > 0) {
+                    //请求成功 且 请求返回的数据不为空，替换当前值
+                    this.anchorDataSource[nowChosenLevel] = this.getJsonContentData(nowChosenLevel, json);
+                    this.tagInfo = json.content.tagInfo;
                     this.setState({
                         loadState: 1,
-                        dataSource_u0: json.content.u0,
-                        tagInfo: json.content.tagInfo,
                     });
-                }else {
-                    this.setState({
-                        loadState: 2,
-                        dataSource_u0: ['empty'],
-                    });
+                } else {
+                    //请求成功 但 当前返回的为空数据，且 之前无请求的数据。渲染空数据页面
+                    if (this.anchorDataSource[nowChosenLevel][0] == 'null'){
+                        this.setState({
+                            loadState: 2,
+                        });
+                    }else {
+                        //请求成功，当前返回的为空数据。但之前请求的数据成功且不为空，渲染旧cell
+                        this.setState({
+                            loadState: 1,
+                        });
+                    }
                 }
-
             })
             .catch((error) => {
                 console.log("【************* False *****************】 ");
                 console.log(error);
-                this.setState({
-                    loadState: -1,
-                    dataSource_u0: ['false'],
-                });
+                if (this.anchorDataSource[nowChosenLevel][0] == 'null'){
+                    //请求失败 且 之前无请求的数据 渲染请求失败页面
+                    this.setState({
+                        loadState: -1,
+                    });
+                }else{
+                    //请求失败 但 之前请求的数据成功且不为空，渲染旧cell
+                    this.setState({
+                        loadState: 1,
+                    });
+                }
+
             })
     }
 
     showChoseLevelView() {
         return (
             <FlatList style={styles.levelView}
-                      data={this.state.levelData}
+                      data={this.levelData}
                       numColumns={3}
                       renderItem={({item, index}) => {
                           if (index == this.state.nowLevelChose) {
@@ -152,17 +167,37 @@ class GoodVoice extends React.Component {
         )
     }
 
+    getJsonContentData(index, json) {
+        switch (index) {
+            case 0: {
+                return json.content.u0;
+                break;
+            }
+            case 1: {
+                return json.content.r10;
+                break;
+            }
+            case 2: {
+                return json.content.r5;
+                break;
+            }
+            case 3: {
+                return json.content.r4;
+                break;
+            }
+            case 4: {
+                return json.content.r1;
+                break;
+            }
+            case 5: {
+                return json.content.r2;
+                break;
+            }
+        }
+    }
+
     _onSelectLevel(index) {
-        if (index != this.state.nowLevelChose) {
-
-            var formdata = new FormData();
-            formdata.append("rate", '1');
-            formdata.append("type", this.state.levelData[index].requestType);
-            formdata.append("size", '0');
-            formdata.append("p", '0');
-            formdata.append("av", '2.1');
-
-            console.log(formdata);
+        if (index != this.state.nowLevelChose) {//如果点击的不是当前level
 
             if (isNeedupLoad[index]) {
                 isNeedupLoad[index] = false;
@@ -170,129 +205,10 @@ class GoodVoice extends React.Component {
 
                 this.setState({
                     loadState: 0,
+                    nowLevelChose: index,
                 });
 
-                fetch('http://v.6.cn/coop/mobile/index.php?padapi=coop-mobile-getlivelistnew.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: formdata,
-                })
-                    .then((response) => response.json())
-                    .then((json) => {
-                        console.log("【************* Success *****************】 ");
-                        switch (index) {
-                            case 0: {
-                                this.timer = setTimeout(
-                                    () => {
-                                        isNeedupLoad[index] = true;
-                                        console.log(this.state.levelData[index].title + "可以更新了");
-                                    },
-                                    180000
-                                );
-                                this.setState({
-                                    loadState: 1,
-                                    dataSource_u0: json.content.u0,
-                                    tagInfo: json.content.tagInfo,
-                                    nowLevelChose: index,
-                                });
-                                break;
-                            }
-                            case 1: {
-                                this.timer = setTimeout(
-                                    () => {
-                                        isNeedupLoad[index] = true;
-                                        console.log(this.state.levelData[index].title + "可以更新了");
-                                    },
-                                    180000
-                                );
-                                this.setState({
-                                    loadState: 1,
-                                    dataSource_r10: json.content.r10,
-                                    tagInfo: json.content.tagInfo,
-                                    nowLevelChose: index,
-                                });
-                                break;
-                            }
-                            case 2: {
-                                this.timer = setTimeout(
-                                    () => {
-                                        isNeedupLoad[index] = true;
-                                        console.log(this.state.levelData[index].title + "可以更新了");
-                                    },
-                                    180000
-                                );
-
-                                this.setState({
-                                    loadState: 1,
-                                    dataSource_r5: json.content.r5,
-                                    tagInfo: json.content.tagInfo,
-                                    nowLevelChose: index,
-                                });
-                                break;
-                            }
-                            case 3: {
-                                this.timer = setTimeout(
-                                    () => {
-                                        isNeedupLoad[index] = true;
-                                        console.log(this.state.levelData[index].title + "可以更新了");
-                                    },
-                                    180000
-                                );
-
-                                this.setState({
-                                    loadState: 1,
-                                    dataSource_r4: json.content.r4,
-                                    tagInfo: json.content.tagInfo,
-                                    nowLevelChose: index,
-                                });
-                                break;
-                            }
-                            case 4: {
-                                this.timer = setTimeout(
-                                    () => {
-                                        isNeedupLoad[index] = true;
-                                        console.log(this.state.levelData[index].title + "可以更新了");
-                                    },
-                                    180000
-                                );
-
-                                this.setState({
-                                    loadState: 1,
-                                    dataSource_r1: json.content.r1,
-                                    tagInfo: json.content.tagInfo,
-                                    nowLevelChose: index,
-                                });
-                                break;
-                            }
-                            case 5: {
-                                this.timer = setTimeout(
-                                    () => {
-                                        isNeedupLoad[index] = true;
-                                        console.log(this.state.levelData[index].title + "可以更新了");
-                                    },
-                                    180000
-                                );
-
-                                this.setState({
-                                    loadState: 1,
-                                    dataSource_r2: json.content.r2,
-                                    tagInfo: json.content.tagInfo,
-                                    nowLevelChose: index,
-                                });
-                                break;
-                            }
-                        }
-
-                    })
-                    .catch((error) => {
-                        console.log("【************* False *****************】 ");
-                        console.log(error);
-                        this.setState({
-                            loadState: -1,
-                        });
-                    })
+                this.post(index);
             } else {
                 this.setState({
                     nowLevelChose: index,
@@ -302,38 +218,9 @@ class GoodVoice extends React.Component {
         }
     }
 
-    getDataSource() {
-        switch (this.state.nowLevelChose) {
-            case 0: {
-                return this.state.dataSource_u0;
-                break;
-            }
-            case 1: {
-                return this.state.dataSource_r10;
-                break;
-            }
-            case 2: {
-                return this.state.dataSource_r5;
-                break;
-            }
-            case 3: {
-                return this.state.dataSource_r4;
-                break;
-            }
-            case 4: {
-                return this.state.dataSource_r1;
-                break;
-            }
-            case 5: {
-                return this.state.dataSource_r2;
-                break;
-            }
-        }
-    }
-
     returnAnchorItem(item, index) {
         switch (this.state.loadState) {
-            case -1: {//同样存在问题，如果请求失败，则数据为空，不会进行渲染
+            case -1: {
                 return (<FailPostDisplay layoutType={1}/>);
                 break;
             }
@@ -342,7 +229,7 @@ class GoodVoice extends React.Component {
                 break;
             }
             case 1: {
-                return (<AnchorPostDisplay dataDic={item} tagsDic={this.state.tagInfo}/>);
+                return (<AnchorPostDisplay dataDic={item} tagsDic={this.tagInfo}/>);
                 break;
             }
             case 2: {
@@ -352,11 +239,21 @@ class GoodVoice extends React.Component {
         }
     }
 
+    returnDataSource(){
+        // return (this.anchorDataSource);
+        if(this.state.loadState == 0){
+            //等待状态,返回单cell
+            return (['null']);
+        }else {
+            return (this.anchorDataSource[this.state.nowLevelChose]);
+        }
+    }
+
     render() {
         return (
             <View>
                 <FlatList style={styles.list}
-                          data={this.getDataSource()}
+                          data={this.returnDataSource()}
                           numColumns={2}
                           getItemLayout={(data, index) => ({
                               length: (SCREEN_WIDTH - 24) * 0.61,
