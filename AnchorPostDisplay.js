@@ -1,3 +1,5 @@
+//1、修改了style：BGView 的 marginLeft（改为在外部添加了不透明的间隔-用于遮挡下拉刷新View）
+
 import React, { Component } from 'react';
 
 import {
@@ -253,7 +255,7 @@ const styles = StyleSheet.create({
     bgView: {
         flexDirection:'column',
 
-        //此处修改了marginLeft，而zai
+
         // marginLeft:ANCHOR_POST_GAP,
         marginTop:ANCHOR_POST_GAP,
         width:(SCREEN_WIDTH - ANCHOR_POST_GAP * 3) / 2,

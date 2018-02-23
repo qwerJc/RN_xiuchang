@@ -21,7 +21,7 @@ import EmptyPostDisplay from './EmptyPostDisplay'
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
-class Dance extends React.Component {
+class Universal extends React.Component {
     constructor(props) {
         super(props);
         this.anchorDataSource = ['null'];//主播list数据源，默认必须有个字符串以保证空数据或请求错误时渲染界面
@@ -46,12 +46,38 @@ class Dance extends React.Component {
         this.timer && clearTimeout(this.timer);
     }
 
+    returnJsonData(json){
+        // console.log(this.props.type);
+        switch (this.props.type){
+            case 'u1':{//舞蹈
+                console.log('舞蹈');
+                return json.content.u1;
+                break;
+            }
+            case 'u2':{//搞笑
+                console.log('搞笑');
+                return json.content.u2;
+                break;
+            }
+            case 'u3':{//唠嗑
+                console.log('唠嗑');
+                return json.content.u3;
+                break;
+            }
+            case 'male':{//男神
+                console.log('男神');
+                return json.content.male;
+                break;
+            }
+        }
+    }
+
     postAM() {
         this.timeDate = (new Date()).valueOf();     //更新时间戳
 
         let formdata = new FormData();
         formdata.append("rate", '1');
-        formdata.append("type", 'u1');
+        formdata.append("type", this.props.type);
         formdata.append("size", '0');
         formdata.append("p", '0');
         formdata.append("av", '2.7');
@@ -66,11 +92,13 @@ class Dance extends React.Component {
         })
             .then((response) => response.json())
             .then((json) => {
+
+                let data = this.returnJsonData(json);
                 console.log("【************* Success *****************】 ");
-                if (json.content.u1.length > 0) {
+                if (data.length > 0) {
                     //请求成功 且 返回数据不为空 替换当前数据
-                    this.anchorDataSource = json.content.u1;
-                    this.tagInfo = json.content.tagInfo;
+                    this.anchorDataSource = this.returnJsonData(json);
+                    this.tagInfo = data;
                     this.setState({
                         loadState: 1,
                     });
@@ -127,7 +155,7 @@ class Dance extends React.Component {
         }
     }
 
-
+    //将请求失败、成功等页面同样当作一个cell，根据请求的状态使flatlist渲染不同的cell
     returnAnchorItem(item) {
         switch (this.state.loadState) {
             //请求失败
@@ -135,11 +163,11 @@ class Dance extends React.Component {
                 return (<FailPostDisplay layoutType={2}/>);
                 break;
             }
-            case 0: {
+            case 0: {//请求中
                 return (<LoadPostDisplay layoutType={2}/>);
                 break;
             }
-            case 1: {
+            case 1: {//请求成功
                 return (
                     <View style={styles.cellItem}>
                         <View style={styles.anchorGap}>
@@ -149,13 +177,14 @@ class Dance extends React.Component {
                 );
                 break;
             }
-            case 2: {
+            case 2: {//空数据
                 return (<EmptyPostDisplay layoutType={2}/>);
                 break;
             }
         }
     }
 
+    //由于等待中时候，数据源为上次请求的结果（会导致多行等待cell），所以需要根据状态判断，修改等待中的数据源
     returnDataSource() {
         // console.log(this.anchorDataSource[0].username);
         if (this.state.loadState == 0) {
@@ -187,6 +216,7 @@ class Dance extends React.Component {
                     <View ref={(c) => this._refPullDownViewLoading = c}
                           style={styles.pullDownRefreshView}>
                         <ActivityIndicator
+                            style={{marginRight:7}}
                             animating={this.state.animating}
                             size="small"/>
                         <Text style={styles.pullDownRefreshViewTitle}>加载中...</Text>
@@ -222,6 +252,7 @@ class Dance extends React.Component {
         );
     }
 
+    //flatlist 滑动的 delegate
     mainScrollViewOnScroll(offsetY) {
         if (this.isTouchPullDown) { //下面的动画效果只应存在于拖动时，若不加判断会导致回弹动画时逆序触发下面动效
             this.offsetY = offsetY;
@@ -245,6 +276,7 @@ class Dance extends React.Component {
         }
     }
 
+    //根据下拉状态显示不同的 下拉刷新view（其余隐藏）
     showPullDownView(index) {
         switch (index) {
             //下拉过程中
@@ -314,6 +346,7 @@ class Dance extends React.Component {
         }
     }
 
+    //触摸结束抬起
     _onReleaseMouse() {
         this.isTouchPullDown = false;
 
@@ -332,6 +365,7 @@ class Dance extends React.Component {
         }
     }
 
+    //开始触摸屏幕
     _onStartTouch() {
         this.isTouchPullDown = true;
         this.showPullDownView(0);
@@ -360,6 +394,7 @@ const styles = StyleSheet.create({
         display: 'none',
     },
     pullDownRefreshViewTitle: {
+        // marginLeft:7,
         color: 'rgba(146, 146, 146, 1)',
     },
     list: {
@@ -377,4 +412,4 @@ const styles = StyleSheet.create({
     },
 });
 
-module.exports = Dance;
+module.exports = Universal;

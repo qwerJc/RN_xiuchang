@@ -20,7 +20,7 @@ import {
 } from 'react-native';
 
 import GoodVoice from './GoodVoice'
-import Dance     from './Dance'
+import Universal     from './Universal'
 import Vicinity  from './Vicinity'
 // import MiniVideo from './MiniVideo'
 import JcTry     from './jcTry'
@@ -99,7 +99,9 @@ export default class App extends Component <{}> {
                     </TouchableOpacity>
                 </View>
 
-                <Dance ref={(c) => this._refDance = c}/>
+                <Universal ref={(c) => this._refDance = c}
+                           type ='u2'
+                />
 
                 <View style={styles.bottomBar}>
                     <TouchableOpacity onPress={this._onPressLive}>
