@@ -34,6 +34,7 @@ const instructions = Platform.select({
     android: 'Double tap R on your keyboard to reload,\n' +
     'Shake or press menu button for dev menu',
 });
+
 export default class App extends Component <{}> {
     constructor(props) {
         super(props);
@@ -45,6 +46,7 @@ export default class App extends Component <{}> {
 
     componentDidMount() {
         // console.log("【页面初始化】");
+        // console.log(this._refDance);
     }
 
     _onPressLive = () => {
@@ -73,6 +75,11 @@ export default class App extends Component <{}> {
                 console.log(error)
             })
     }
+    end(){
+        this._refDance.autoRefresh();
+        // this._refDance.jc1();
+    }
+
     //<Dance/>
     //<GoodVoice/>
     // <Vicinity/>
@@ -80,9 +87,19 @@ export default class App extends Component <{}> {
     render() {
         return (
             <View style={styles.container}>
-                <View style={styles.headBar}></View>
+                <View style={styles.headBar}>
+                    <TouchableOpacity style={{
+                        paddingTop:20,
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                        onPress={()=>this.end()}>
+                        <Text>Click me !</Text>
+                    </TouchableOpacity>
+                </View>
 
-                <GoodVoice />
+                <Dance ref={(c) => this._refDance = c}/>
 
                 <View style={styles.bottomBar}>
                     <TouchableOpacity onPress={this._onPressLive}>

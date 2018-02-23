@@ -253,7 +253,8 @@ const styles = StyleSheet.create({
     bgView: {
         flexDirection:'column',
 
-        marginLeft:ANCHOR_POST_GAP,
+        //此处修改了marginLeft，而zai
+        // marginLeft:ANCHOR_POST_GAP,
         marginTop:ANCHOR_POST_GAP,
         width:(SCREEN_WIDTH - ANCHOR_POST_GAP * 3) / 2,
         height:(SCREEN_WIDTH - ANCHOR_POST_GAP * 3) / 2 + 36,

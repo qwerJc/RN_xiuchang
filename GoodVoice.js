@@ -134,7 +134,7 @@ class GoodVoice extends React.Component {
             })
     }
 
-    showChoseLevelView() {
+    renderChoseLevelView() {
         return (
             <FlatList style={styles.levelView}
                       data={this.levelData}
@@ -261,7 +261,7 @@ class GoodVoice extends React.Component {
                               index
                           })}
                           initialNumToRender={3}
-                          ListHeaderComponent={this.showChoseLevelView.bind(this)}
+                          ListHeaderComponent={this.renderChoseLevelView.bind(this)}
                           renderItem={({item, index}) =>
                               this.returnAnchorItem(item, index)
                           }

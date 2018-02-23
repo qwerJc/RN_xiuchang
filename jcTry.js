@@ -91,7 +91,14 @@ class jcTry extends React.Component {
                 break;
             }
             case 1: {
-                return (<AnchorPostDisplay dataDic={item} tagsDic={this.state.tagInfo}/>);
+                return (
+                    <View>
+                        <View>
+                        </View>
+                        <AnchorPostDisplay dataDic={item} tagsDic={this.state.tagInfo}/>
+                    </View>
+
+                );
                 break;
             }
             case 2: {
