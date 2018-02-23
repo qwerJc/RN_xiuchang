@@ -26,7 +26,7 @@ class Universal extends React.Component {
         super(props);
         this.anchorDataSource = ['null'];//主播list数据源，默认必须有个字符串以保证空数据或请求错误时渲染界面
         this.tagInfo = [];//所有tag标签的数据
-        this.offsetY = 0;
+        this.mainListoffsetY = 0;
         this.timeDate = 0;
         this.isTouchPullDown = true; //判断当前是否处于用户拖动状态
         this.state = {
@@ -150,7 +150,7 @@ class Universal extends React.Component {
                 () => {
                     this.postAM();
                 },
-                100
+                300
             );
         }
     }
@@ -255,7 +255,7 @@ class Universal extends React.Component {
     //flatlist 滑动的 delegate
     mainScrollViewOnScroll(offsetY) {
         if (this.isTouchPullDown) { //下面的动画效果只应存在于拖动时，若不加判断会导致回弹动画时逆序触发下面动效
-            this.offsetY = offsetY;
+            this.mainListoffsetY = offsetY;
             if (offsetY >= 0) {
                 this.imgArrowState.setNativeProps({
                     style: {transform: [{rotate: '0deg'}]}
@@ -350,7 +350,7 @@ class Universal extends React.Component {
     _onReleaseMouse() {
         this.isTouchPullDown = false;
 
-        if (this.offsetY < -44) {
+        if (this.mainListoffsetY < -44) {
 
             this.mainList.scrollToOffset({animated: true, offset: -44});
 

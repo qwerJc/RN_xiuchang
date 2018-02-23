@@ -76,7 +76,7 @@ export default class App extends Component <{}> {
             })
     }
     end(){
-        this._refDance.autoRefresh();
+        this._refAutoRefresh.autoRefresh();
         // this._refDance.jc1();
     }
 
@@ -99,9 +99,10 @@ export default class App extends Component <{}> {
                     </TouchableOpacity>
                 </View>
 
-                <Universal ref={(c) => this._refDance = c}
-                           type ='u2'
-                />
+                <Vicinity ref={(c) => this._refAutoRefresh = c}/>
+                {/*<Universal ref={(c) => this._refDance = c}*/}
+                           {/*type ='u2'*/}
+                {/*/>*/}
 
                 <View style={styles.bottomBar}>
                     <TouchableOpacity onPress={this._onPressLive}>
