@@ -38,7 +38,7 @@ class Universal extends React.Component {
     }
 
     componentWillMount() {
-        this.postAM();
+        this.post();
         this.timeDate = (new Date()).valueOf();
     }
 
@@ -72,7 +72,7 @@ class Universal extends React.Component {
         }
     }
 
-    postAM() {
+    post() {
         this.timeDate = (new Date()).valueOf();     //更新时间戳
 
         let formdata = new FormData();
@@ -141,14 +141,14 @@ class Universal extends React.Component {
         let nowTime = (new Date()).valueOf();
         let diff = nowTime - this.timeDate;
 
-        if (diff > 180) {
+        if (diff > 180000) {
             console.log(this.timeDate);
             // this.isTouchPullDown = true;
             this.mainList.scrollToOffset({animated: true, offset: -44});
             this.showPullDownView(2);
             this.timer = setTimeout(
                 () => {
-                    this.postAM();
+                    this.post();
                 },
                 300
             );
@@ -358,7 +358,7 @@ class Universal extends React.Component {
 
             this.timer = setTimeout(
                 () => {
-                    this.postAM();
+                    this.post();
                 },
                 10
             );

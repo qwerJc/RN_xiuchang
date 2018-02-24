@@ -8,7 +8,6 @@ import {
     TouchableHighlight,
     Dimensions,
     Image,
-    ImageBackground,
     ActivityIndicator,
     Animated,
     Easing,
@@ -105,7 +104,7 @@ class Vicinity extends React.Component {
         let nowTime = (new Date()).valueOf();
         let diff = nowTime - this.timeDate;
 
-        if (diff > 180) {
+        if (diff > 180000) {
             console.log(this.timeDate);
             // this.isTouchPullDown = true;
             this.mainList.scrollToOffset({animated: true, offset: -44});
@@ -188,11 +187,11 @@ class Vicinity extends React.Component {
     judgeProvinceMenuSelect(index) {
         if (this.state.nowPid == this.provinceDataSource[index].pid) {
             return (<Image
-                source={require('./images/LiveLobby2/liveLobby_local_menu_cell_selected.png')}
+                source={require('./images/LiveLobby/live_list_icon_menu_cell_selected.png')}
             />);
         } else {
             return (<Image
-                source={require('./images/LiveLobby2/liveLobby_local_menu_cell_normal.png')}
+                source={require('./images/LiveLobby/live_list_icon_menu_cell_normal.png')}
             />);
         }
     }

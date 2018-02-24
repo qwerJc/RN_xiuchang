@@ -75,6 +75,7 @@ export default class App extends Component <{}> {
                 console.log(error)
             })
     }
+
     end(){
         this._refAutoRefresh.autoRefresh();
         // this._refDance.jc1();
@@ -99,8 +100,11 @@ export default class App extends Component <{}> {
                     </TouchableOpacity>
                 </View>
 
+                {/*<GoodVoice ref={(c) => this._refAutoRefresh = c}/>*/}
+
                 <Vicinity ref={(c) => this._refAutoRefresh = c}/>
-                {/*<Universal ref={(c) => this._refDance = c}*/}
+
+                {/*<Universal ref={(c) => this._refAutoRefresh = c}*/}
                            {/*type ='u2'*/}
                 {/*/>*/}
 
