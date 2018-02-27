@@ -5,12 +5,16 @@ import {
     StyleSheet,
     FlatList,
     Dimensions,
+    View,
+    SectionList,
+    Text,
 } from 'react-native'
 
 import AnchorPostDisplay from './AnchorPostDisplay'
 import FailPostDisplay from './FailPostDisplay'
 import LoadPostDisplay from './LoadPostDisplay'
 import EmptyPostDisplay from './EmptyPostDisplay'
+import PullDownRefreshView from './PullDownRefreshView'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -31,7 +35,7 @@ class jcTry extends React.Component {
 
     post() {
 
-        var jc=''
+        var jc = ''
 
 
         var formdata = new FormData();
@@ -79,7 +83,6 @@ class jcTry extends React.Component {
     }
 
     returnAnchorItem(item) {
-        console.log(this.state.loadState);
         switch (this.state.loadState) {
             //请求失败
             case -1: {//data.length = 1
@@ -108,9 +111,13 @@ class jcTry extends React.Component {
         }
     }
 
-    render() {
+
+    returnContainer() {
         return (
             <FlatList style={styles.list}
+                      ref={(refMainList) => {
+                          this.mainList = refMainList;
+                      }}
                       data={this.state.dataSource}
                       numColumns={2}
                       initialNumToRender={3}
@@ -124,6 +131,56 @@ class jcTry extends React.Component {
                       }
                       keyExtractor={(item, index) => index}
             />
+        );
+    }
+
+    scroll1(offsetY) {
+        console.log(offsetY);
+        // this.flatList.scrollToOffset({animated: true, offset: 0});
+    }
+
+    autoRefresh() {
+        console.log('zzzz');
+        this.mainList.scrollToOffset({animated: true, offset: -44});
+        // this.jcFlatList.scrollToOffset({animated: true, offset: 50});
+    }
+
+
+    render() {
+        // return(this.returnContainer());
+        return (
+            <PullDownRefreshView />
+            //
+            //  <SectionList
+            //    renderItem={() => this.returnContainer()}
+            //    pageSize={2}
+            //    renderSectionHeader={({section}) => this.returnHeader(section)}
+            //    onScroll={(event) => this.scroll1(event.nativeEvent.contentOffset.y)}
+            //    sections={[ // 不同section渲染相同类型的子组件
+            //        {data: 'q', key: 'No.1'},
+            //      ]}
+            // />
+
+
+            //
+            // {/*<FlatList style={styles.list}*/}
+            //           {/*ref={(refMainList) => {*/}
+            //               {/*this.mainList = refMainList;*/}
+            //           {/*}}*/}
+            //           {/*data={this.state.dataSource}*/}
+            //           {/*numColumns={2}*/}
+            //           {/*initialNumToRender={3}*/}
+            //           {/*getItemLayout={(data, index) => ({*/}
+            //               {/*length: (SCREEN_WIDTH - 24) * 0.61,*/}
+            //               {/*offset: (SCREEN_WIDTH - 24) * 0.61 * index,*/}
+            //               {/*index*/}
+            //           {/*})}*/}
+            //           {/*renderItem={({item, index}) =>*/}
+            //               {/*this.returnAnchorItem(item)*/}
+            //           {/*}*/}
+            //           {/*keyExtractor={(item, index) => index}*/}
+            // {/*/>*/}
+
         );
     }
 }

@@ -261,8 +261,9 @@ class Vicinity extends React.Component {
 
     renderProvinceMenu() {
         return (
-            <TouchableWithoutFeedback onPress={() => this._onShowProvinceMenu()}>
-                <View style={styles.provinceMenuButton}>
+            <View style={{height: 55}}>
+                <View ref={(c) => this._refProvinceMenuUnclick = c}
+                      style={styles.provinceMenuButton}>
                     <View style={styles.provinceMenuButtonLeftView}>
                         <Image style={styles.provinceMenuButtonLeftViewIcon}
                                source={require('./images/LiveLobby/live_list_icon_local.png')}/>
@@ -270,25 +271,21 @@ class Vicinity extends React.Component {
                             {this.nowProvinceTitle}
                         </Text>
                     </View>
-                    <Animated.Image // 可选的基本组件类型: Image, Text, View(可以包裹任意子View)
+                    <Image // 可选的基本组件类型: Image, Text, View(可以包裹任意子View)
                         style={[styles.provinceMenuButtonArrow, {
-                            transform: [{
-                                rotate: this.state.iconRotateValue.interpolate({ // 旋转，使用插值函数做值映射
-                                    inputRange: [0, 1],
-                                    outputRange: ['0deg', '360deg']
-                                })
-                            }]
+                            transform: [{rotate: '180deg'}]
                         }]}
                         source={require('./images/LiveLobby/live_list_icon_local_menu_arrow.png')}/>
                 </View>
-            </TouchableWithoutFeedback>
+            </View>
         );
     }
 
     render() {
         return (
             <View style={styles.bgVIew}>
-                <View style={styles.pullDownRefreshBG}>
+                <View ref={(c) => this._refPullDownView = c}
+                      style={styles.pullDownRefreshBG}>
                     <View ref={(c) => this._refPullDownViewPull = c}
                           style={[styles.pullDownRefreshView, {display: 'flex'}]}>
                         <Image source={require('./images/LiveLobby/refresh_arrow.png')}
@@ -335,6 +332,32 @@ class Vicinity extends React.Component {
                           onResponderGrant={() => this._onStartTouch()}
                           onResponderRelease={() => this._onReleaseMouse()}
                 />
+
+                <TouchableWithoutFeedback onPress={() => this._onShowProvinceMenu()}>
+                    <View style={{height: 55, position: 'absolute'}}>
+                        <View ref={(c) => this._refProvinceMenuClick = c}
+                            style={styles.provinceMenuButton}>
+                            <View style={styles.provinceMenuButtonLeftView}>
+                                <Image style={styles.provinceMenuButtonLeftViewIcon}
+                                       source={require('./images/LiveLobby/live_list_icon_local.png')}/>
+                                <Text style={styles.provinceMenuButtonLeftViewTitle}>
+                                    {this.nowProvinceTitle}
+                                </Text>
+                            </View>
+                            <Animated.Image // 可选的基本组件类型: Image, Text, View(可以包裹任意子View)
+                                style={[styles.provinceMenuButtonArrow, {
+                                    transform: [{
+                                        rotate: this.state.iconRotateValue.interpolate({ // 旋转，使用插值函数做值映射
+                                            inputRange: [0, 1],
+                                            outputRange: ['0deg', '360deg']
+                                        })
+                                    }]
+                                }]}
+                                source={require('./images/LiveLobby/live_list_icon_local_menu_arrow.png')}/>
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+
                 <Animated.View style={{
                     overflow: 'hidden',
                     marginTop: 55,
@@ -371,11 +394,27 @@ class Vicinity extends React.Component {
         if (this.isTouchPullDown) { //下面的动画效果只应存在于拖动时，若不加判断会导致回弹动画时逆序触发下面动效
             this.mainListoffsetY = offsetY;
             if (offsetY >= 0) {
+                console.log('111');
+                ////////////////////////////
+                this._refProvinceMenuUnclick.setNativeProps({
+                    style: {display: 'none'}
+                });
+                this._refProvinceMenuClick.setNativeProps({
+                    style: {display: 'flex'}
+                });
+
+
                 this.imgArrowState.setNativeProps({
                     style: {transform: [{rotate: '0deg'}]}
                 });
                 //翻转图片
             } else if (-44 < offsetY && offsetY < 0) {
+                this._refProvinceMenuUnclick.setNativeProps({
+                    style: {display: 'flex'}
+                });
+                this._refProvinceMenuClick.setNativeProps({
+                    style: {display: 'none'}
+                });
                 this.showPullDownView(0);
                 let rotateRate = offsetY / 44;
                 // console.log(rotateRate);
@@ -385,6 +424,12 @@ class Vicinity extends React.Component {
                 });
                 // console.log('仅执行动画，不进行下拉刷新');
             } else {
+                this._refProvinceMenuUnclick.setNativeProps({
+                    style: {display: 'flex'}
+                });
+                this._refProvinceMenuClick.setNativeProps({
+                    style: {display: 'none'}
+                });
                 this.showPullDownView(1);
             }
         }
@@ -462,6 +507,7 @@ class Vicinity extends React.Component {
 
     //触摸结束抬起
     _onReleaseMouse() {
+
         this.isTouchPullDown = false;
 
         if (this.mainListoffsetY < -44) {
@@ -487,11 +533,12 @@ class Vicinity extends React.Component {
 }
 
 const styles = StyleSheet.create({
-    //下拉刷新
     bgVIew: {
         backgroundColor: 'rgba(240,240,240,1)',
     },
+    //下拉刷新
     pullDownRefreshBG: {
+        // marginTop: 64,
         height: 44,
         width: SCREEN_WIDTH,
         // backgroundColor: 'gray',
@@ -514,6 +561,7 @@ const styles = StyleSheet.create({
     //省份菜单
     provinceMenuButton: {
         height: 55,
+        width: SCREEN_WIDTH,
         backgroundColor: 'white',
         flexDirection: 'row',
         justifyContent: 'space-between', //定义了伸缩项目在主轴线的对齐方式
@@ -557,7 +605,7 @@ const styles = StyleSheet.create({
     },
     list: {
         backgroundColor: 'rgba(255,255,255,0)',
-        height: SCREEN_HEIGHT - 115,
+        height: SCREEN_HEIGHT - 60,
         paddingBottom: 7,
     },
     cellItem: {

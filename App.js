@@ -78,7 +78,6 @@ export default class App extends Component <{}> {
 
     end(){
         this._refAutoRefresh.autoRefresh();
-        // this._refDance.jc1();
     }
 
     //<Dance/>
@@ -100,9 +99,11 @@ export default class App extends Component <{}> {
                     </TouchableOpacity>
                 </View>
 
-                {/*<GoodVoice ref={(c) => this._refAutoRefresh = c}/>*/}
+                {/*<JcTry ref={(c) => this._refAutoRefresh = c}/>*/}
 
                 <Vicinity ref={(c) => this._refAutoRefresh = c}/>
+
+                {/*<GoodVoice ref={(c) => this._refAutoRefresh = c}/>*/}
 
                 {/*<Universal ref={(c) => this._refAutoRefresh = c}*/}
                            {/*type ='u2'*/}
@@ -142,7 +143,9 @@ export default class App extends Component <{}> {
 }
 const styles = StyleSheet.create({
     headBar: {
+        // position:'absolute',
         height: 64,
+        width:SCREEN_WIDTH,
         backgroundColor: 'red',
     },
     bottomBar: {
