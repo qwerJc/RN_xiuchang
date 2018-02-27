@@ -140,7 +140,7 @@ class Universal extends React.Component {
         let nowTime = (new Date()).valueOf();
         let diff = nowTime - this.timeDate;
 
-        if (diff > 1000) {
+        if (diff > 180000) {
             console.log(this.timeDate);
 
             this.mainList.scrollToOffset({animated: true, offset: -44});
@@ -189,20 +189,12 @@ class Universal extends React.Component {
         }
     }
 
-
-    jc1(){
-        this.post();
-        console.log('-----------------------------------');
-    }
-
-
     render() {
         return (
             <View style={styles.bgVIew}>
 
                 <PullDownRefreshView ref={(c) => this._refPullDownRefreshView = c}
-                                     callbackPost={() => this.jc1()}
-                />
+                                     callbackPost={() => this.post()}/>
 
                 <FlatList style={styles.list}
                           data={this.returnDataSource()}

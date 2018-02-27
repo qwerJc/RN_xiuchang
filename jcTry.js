@@ -16,6 +16,8 @@ import LoadPostDisplay from './LoadPostDisplay'
 import EmptyPostDisplay from './EmptyPostDisplay'
 import PullDownRefreshView from './PullDownRefreshView'
 
+import GoodVoiceLevelView from './GoodVoiceLevelView'
+
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -149,7 +151,7 @@ class jcTry extends React.Component {
     render() {
         // return(this.returnContainer());
         return (
-            <PullDownRefreshView />
+            <GoodVoiceLevelView />
             //
             //  <SectionList
             //    renderItem={() => this.returnContainer()}

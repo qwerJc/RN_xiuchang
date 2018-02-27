@@ -13,6 +13,8 @@ import {
     Easing,
 } from 'react-native'
 
+import PullDownRefreshView from './PullDownRefreshView'
+
 import AnchorPostDisplay from './AnchorPostDisplay'
 import FailPostDisplay from './FailPostDisplay'
 import LoadPostDisplay from './LoadPostDisplay'
@@ -32,7 +34,7 @@ class Vicinity extends React.Component {
         //下面为下拉刷新相关属性
         this.mainListoffsetY = 0;
         this.timeDate = 0;
-        this.isTouchPullDown = true; //判断当前是否处于用户拖动状态
+        this.isTouchPullDown = false; //判断当前是否处于用户拖动状态
 
         this.state = {
             nowPid: 0,
@@ -84,7 +86,7 @@ class Vicinity extends React.Component {
                         loadState: 2,
                     });
                 }
-                this.showPullDownView(3);
+                this._refPullDownRefreshView.showPullDownView(3);
                 this.mainList.scrollToOffset({animated: true, offset: 0});
             })
             .catch((error) => {
@@ -95,7 +97,7 @@ class Vicinity extends React.Component {
                 this.setState({
                     loadState: -1,
                 });
-                this.showPullDownView(3);
+                this._refPullDownRefreshView.showPullDownView(3);
                 this.mainList.scrollToOffset({animated: true, offset: 0});
             })
     }
@@ -105,16 +107,9 @@ class Vicinity extends React.Component {
         let diff = nowTime - this.timeDate;
 
         if (diff > 180000) {
-            console.log(this.timeDate);
-            // this.isTouchPullDown = true;
+
             this.mainList.scrollToOffset({animated: true, offset: -44});
-            this.showPullDownView(2);
-            this.timer = setTimeout(
-                () => {
-                    this.post(this.state.nowPid);
-                },
-                300
-            );
+            this._refPullDownRefreshView.showPullDownView(2);
         }
     }
 
@@ -281,37 +276,16 @@ class Vicinity extends React.Component {
         );
     }
 
+    jc1(){
+        this.post(this.state.nowPid);
+        console.log('-----------------------------------');
+    }
+
     render() {
         return (
             <View style={styles.bgVIew}>
-                <View ref={(c) => this._refPullDownView = c}
-                      style={styles.pullDownRefreshBG}>
-                    <View ref={(c) => this._refPullDownViewPull = c}
-                          style={[styles.pullDownRefreshView, {display: 'flex'}]}>
-                        <Image source={require('./images/LiveLobby/refresh_arrow.png')}
-                               style={{transform: [{rotate: '0deg'}]}}
-                               ref={(imgArrow) => this.imgArrowState = imgArrow}/>
-                        <Text style={styles.pullDownRefreshViewTitle}>下拉刷新</Text>
-                    </View>
-                    <View ref={(c) => this._refPullDownViewRelease = c}
-                          style={styles.pullDownRefreshView}>
-                        <Image source={require('./images/LiveLobby/refresh_arrow.png')}
-                               style={{transform: [{rotate: '180deg'}]}}/>
-                        <Text style={styles.pullDownRefreshViewTitle}>释放更新</Text>
-                    </View>
-                    <View ref={(c) => this._refPullDownViewLoading = c}
-                          style={styles.pullDownRefreshView}>
-                        <ActivityIndicator
-                            style={{marginRight: 7}}
-                            animating={this.state.animating}
-                            size="small"/>
-                        <Text style={styles.pullDownRefreshViewTitle}>加载中...</Text>
-                    </View>
-                    <View ref={(c) => this._refPullDownViewFinish = c}
-                          style={styles.pullDownRefreshView}>
-                        <Text style={styles.pullDownRefreshViewTitle}>加载完成</Text>
-                    </View>
-                </View>
+                <PullDownRefreshView ref={(c) => this._refPullDownRefreshView = c}
+                                     callbackPost={() => this.post(this.state.nowPid)}/>
 
                 <FlatList style={styles.list}
                           data={this.anchorDataSource}
@@ -391,144 +365,39 @@ class Vicinity extends React.Component {
 
     //flatlist 滑动的 delegate
     mainScrollViewOnScroll(offsetY) {
-        if (this.isTouchPullDown) { //下面的动画效果只应存在于拖动时，若不加判断会导致回弹动画时逆序触发下面动效
-            this.mainListoffsetY = offsetY;
-            if (offsetY >= 0) {
-                console.log('111');
-                ////////////////////////////
-                this._refProvinceMenuUnclick.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refProvinceMenuClick.setNativeProps({
-                    style: {display: 'flex'}
-                });
-
-
-                this.imgArrowState.setNativeProps({
-                    style: {transform: [{rotate: '0deg'}]}
-                });
-                //翻转图片
-            } else if (-44 < offsetY && offsetY < 0) {
-                this._refProvinceMenuUnclick.setNativeProps({
-                    style: {display: 'flex'}
-                });
-                this._refProvinceMenuClick.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this.showPullDownView(0);
-                let rotateRate = offsetY / 44;
-                // console.log(rotateRate);
-                let rotateValue = parseInt(rotateRate * 180) + 'deg';
-                this.imgArrowState.setNativeProps({
-                    style: {transform: [{rotate: rotateValue}]}
-                });
-                // console.log('仅执行动画，不进行下拉刷新');
-            } else {
-                this._refProvinceMenuUnclick.setNativeProps({
-                    style: {display: 'flex'}
-                });
-                this._refProvinceMenuClick.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this.showPullDownView(1);
-            }
-        }
-    }
-
-    //根据下拉状态显示不同的 下拉刷新view（其余隐藏）
-    showPullDownView(index) {
-        switch (index) {
-            //下拉过程中
-            case 0: {
-                this._refPullDownViewPull.setNativeProps({
-                    style: {display: 'flex'}
-                });
-                this._refPullDownViewRelease.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewLoading.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewFinish.setNativeProps({
-                    style: {display: 'none'}
-                });
-                break;
-            }
-            //超过临界值，释放可更新
-            case 1: {
-                this._refPullDownViewPull.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewRelease.setNativeProps({
-                    style: {display: 'flex'}
-                });
-                this._refPullDownViewLoading.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewFinish.setNativeProps({
-                    style: {display: 'none'}
-                });
-                break;
-            }
-            //已松手，加载中
-            case 2: {
-                this._refPullDownViewPull.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewRelease.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewLoading.setNativeProps({
-                    style: {display: 'flex'}
-                });
-                this._refPullDownViewFinish.setNativeProps({
-                    style: {display: 'none'}
-                });
-                break;
-            }
-            //加载完成
-            case 3: {
-                this._refPullDownViewPull.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewRelease.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewLoading.setNativeProps({
-                    style: {display: 'none'}
-                });
-                this._refPullDownViewFinish.setNativeProps({
-                    style: {display: 'flex'}
-                });
-                break;
-            }
+        this._refPullDownRefreshView.judgeScrollState(offsetY, this.isTouchPullDown);
+        this.mainListoffsetY = offsetY;
+        if (offsetY >= 0) {
+            this._refProvinceMenuUnclick.setNativeProps({
+                style: {display: 'none'}
+            });
+            this._refProvinceMenuClick.setNativeProps({
+                style: {display: 'flex'}
+            });
+        }else {
+            this._refProvinceMenuUnclick.setNativeProps({
+                style: {display: 'flex'}
+            });
+            this._refProvinceMenuClick.setNativeProps({
+                style: {display: 'none'}
+            });
         }
     }
 
     //触摸结束抬起
     _onReleaseMouse() {
-
         this.isTouchPullDown = false;
 
         if (this.mainListoffsetY < -44) {
-
             this.mainList.scrollToOffset({animated: true, offset: -44});
-
-            this.showPullDownView(2);
-
-            this.timer = setTimeout(
-                () => {
-                    this.post(this.state.nowPid);
-                },
-                10
-            );
+            this._refPullDownRefreshView.showPullDownView(2);
         }
     }
 
     //开始触摸屏幕
     _onStartTouch() {
         this.isTouchPullDown = true;
-        this.showPullDownView(0);
+        this._refPullDownRefreshView.showPullDownView(0);
     }
 }
 

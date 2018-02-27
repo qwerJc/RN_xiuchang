@@ -101,9 +101,9 @@ export default class App extends Component <{}> {
 
                 {/*<JcTry ref={(c) => this._refAutoRefresh = c}/>*/}
 
-                <Vicinity ref={(c) => this._refAutoRefresh = c}/>
+                {/*<Vicinity ref={(c) => this._refAutoRefresh = c}/>*/}
 
-                {/*<GoodVoice ref={(c) => this._refAutoRefresh = c}/>*/}
+                <GoodVoice ref={(c) => this._refAutoRefresh = c}/>
 
                 {/*<Universal ref={(c) => this._refAutoRefresh = c}*/}
                            {/*type ='u2'*/}
