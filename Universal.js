@@ -22,10 +22,20 @@ import EmptyPostDisplay from './EmptyPostDisplay'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+const IS_5_8_DEVICE = Dimensions.get('window').height == 812;
 
 class Universal extends React.Component {
+    static defaultProps = {
+        av : '',
+        refreshInterval : 180000,
+    }
     constructor(props) {
         super(props);
+        this.rate = '1';
+        this.uid = '';
+        this.encpass = '';
+        this.rand = '';
+
         this.anchorDataSource = ['null'];//主播list数据源，默认必须有个字符串以保证空数据或请求错误时渲染界面
         this.tagInfo = [];//所有tag标签的数据
         this.mainListoffsetY = 0;
@@ -37,57 +47,44 @@ class Universal extends React.Component {
         };
     }
 
-    componentWillMount() {
-        this.post();
-        this.timeDate = (new Date()).valueOf();
-    }
+    // componentWillMount(){
+    //     console.log('Universal----------------------------------------');
+    //     console.log(this.timeDate);
+    // }
 
-    componentWillUnmount() {
-        this.timer && clearTimeout(this.timer);
+    setRequestProps(props){
+        this.rate = props.rate;
+        this.uid = props.uid;
+        this.encpass = props.encpass;
+        this.rand = props.rand;
     }
-
-    returnJsonData(json) {
-        // console.log(this.props.type);
-        switch (this.props.type) {
-            case 'u1': {//舞蹈
-                console.log('舞蹈');
-                return json.content.u1;
-                break;
-            }
-            case 'u2': {//搞笑
-                console.log('搞笑');
-                return json.content.u2;
-                break;
-            }
-            case 'u3': {//唠嗑
-                console.log('唠嗑');
-                return json.content.u3;
-                break;
-            }
-            case 'male': {//男神
-                console.log('男神');
-                return json.content.male;
-                break;
-            }
-        }
+    setLoginProps(props) {
+        this.uid = props.uid;
+        this.encpass = props.encpass;
     }
 
     post() {
         this.timeDate = (new Date()).valueOf();     //更新时间戳
 
-        let formdata = new FormData();
-        formdata.append("rate", '1');
-        formdata.append("type", this.props.type);
-        formdata.append("size", '0');
-        formdata.append("p", '0');
-        formdata.append("av", '2.7');
+        let requestParams = new FormData();
+        requestParams.append("rate", this.rate);
+        requestParams.append("type", this.props.type);
+        requestParams.append("size", '0');
+        requestParams.append("p", '0');
+        requestParams.append("av", this.props.av);
+        requestParams.append('logiuid', this.uid);
+        requestParams.append('encpass', this.encpass);
+
+        if (this.rate){
+            requestParams.append('rand', this.rand);
+        }
 
         fetch('http://v.6.cn/coop/mobile/index.php?padapi=coop-mobile-getlivelistnew.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: formdata,
+            body: requestParams,
         })
             .then((response) => response.json())
             .then((json) => {
@@ -140,17 +137,55 @@ class Universal extends React.Component {
         let nowTime = (new Date()).valueOf();
         let diff = nowTime - this.timeDate;
 
-        if (diff > 180000) {
-            console.log(this.timeDate);
+        if (this.timeDate == 0){
+            this.post();
+        }else {
+            if (diff > this.props.refreshInterval) {
+                console.log(this.timeDate);
 
-            this.mainList.scrollToOffset({animated: true, offset: -44});
-            this._refPullDownRefreshView.showPullDownView(2);
+                this.mainList.scrollToOffset({animated: true, offset: -44});
+                this._refPullDownRefreshView.showPullDownView(2);
+            }
+        }
+    }
 
+    returnJsonData(json) {
+        switch (this.props.type) {
+            case 'u1': {//舞蹈
+                console.log('舞蹈');
+                return json.content.u1;
+                break;
+            }
+            case 'u2': {//搞笑
+                console.log('搞笑');
+                return json.content.u2;
+                break;
+            }
+            case 'u3': {//唠嗑
+                console.log('唠嗑');
+                return json.content.u3;
+                break;
+            }
+            case 'male': {//男神
+                console.log('男神');
+                return json.content.male;
+                break;
+            }
+            case 'mlive':{//手机红人
+                console.log('手机红人');
+                return json.content.mlive;
+                break;
+            }
+            case 'u7':{//商铺
+                console.log('商铺');
+                return json.content.u7;
+                break;
+            }
         }
     }
 
     //将请求失败、成功等页面同样当作一个cell，根据请求的状态使flatlist渲染不同的cell
-    returnAnchorItem(item) {
+    renderAnchorItem(item) {
         switch (this.state.loadState) {
             //请求失败
             case -1: {//data.length = 1
@@ -163,9 +198,8 @@ class Universal extends React.Component {
             }
             case 1: {//请求成功
                 return (
-                    <View style={styles.cellItem}>
-                        <View style={styles.anchorGap}>
-                        </View>
+                    <View>
+                        <View style={styles.anchorGap}></View>
                         <AnchorPostDisplay dataDic={item} tagsDic={this.tagInfo}/>
                     </View>
                 );
@@ -177,48 +211,113 @@ class Universal extends React.Component {
             }
         }
     }
-
-    //由于等待中时候，数据源为上次请求的结果（会导致多行等待cell），所以需要根据状态判断，修改等待中的数据源
-    returnDataSource() {
-        // console.log(this.anchorDataSource[0].username);
-        if (this.state.loadState == 0) {
-            //等待状态,返回单cell
-            return (['null']);
-        } else {
-            return (this.anchorDataSource);
+    renderListHeaderComponent(){
+        if (IS_5_8_DEVICE) {
+            return (
+                <View style={[styles.listHeader,{height:88}]}>
+                </View>
+            );
+        }else {
+            return (
+                <View style={[styles.listHeader,{height:64}]}>
+                </View>
+            );
+        }
+    }
+    renderListFooterComponent(){
+        if (IS_5_8_DEVICE) {
+            return (
+                <View style={[styles.listFooter,{height:90}]}>
+                </View>
+            );
+        }else {
+            return (
+                <View style={[styles.listFooter,{height:56}]}>
+                </View>
+            );
         }
     }
 
+    //由于等待中时候，数据源为上次请求的结果（会导致多行等待cell），所以需要根据状态判断，修改等待中的数据源
+    //*****************************************************
+        //(暂时不需要，准备在flatlist上覆盖一层透明的view)
+    //*****************************************************
+    // returnDataSource() {
+    //     // console.log(this.anchorDataSource[0].username);
+    //     if (this.state.loadState == 0) {
+    //         //等待状态,返回单cell
+    //         return (['null']);
+    //     } else {
+    //         return (this.anchorDataSource);
+    //     }
+    // }
+
     render() {
-        return (
-            <View style={styles.bgVIew}>
+        if (this.state.loadState == 0){
+            return (
+                <View style={styles.bgView}>
 
-                <PullDownRefreshView ref={(c) => this._refPullDownRefreshView = c}
-                                     callbackPost={() => this.post()}/>
+                    <PullDownRefreshView ref={(c) => this._refPullDownRefreshView = c}
+                                         callbackPost={() => this.post()}/>
 
-                <FlatList style={styles.list}
-                          data={this.returnDataSource()}
-                          numColumns={2}
-                          initialNumToRender={3}s
-                          getItemLayout={(data, index) => ({
-                              length: (SCREEN_WIDTH - 24) * 0.61,
-                              offset: (SCREEN_WIDTH - 24) * 0.61 * index,
-                              index
-                          })}
-                          renderItem={({item, index}) =>
-                              this.returnAnchorItem(item)
-                          }
-                          keyExtractor={(item, index) => index}
-                          scrollEventThrottle={30}
-                          onScroll={(event) => this.mainScrollViewOnScroll(event.nativeEvent.contentOffset.y)}
-                          ref={(refMainList) => {
-                              this.mainList = refMainList;
-                          }}
-                          onResponderGrant={() => this._onStartTouch()}
-                          onResponderRelease={() => this._onReleaseMouse()}
-                />
-            </View>
-        );
+                    <FlatList style={styles.list}
+                              data={this.anchorDataSource}
+                              numColumns={2}
+                              initialNumToRender={3}s
+                              getItemLayout={(data, index) => ({
+                                  length: (SCREEN_WIDTH - 24) * 0.61,
+                                  offset: (SCREEN_WIDTH - 24) * 0.61 * index,
+                                  index
+                              })}
+                              renderItem={({item, index}) =>
+                                  this.renderAnchorItem(item)
+                              }
+                              ListHeaderComponent={()=>this.renderListHeaderComponent()}
+                              ListFooterComponent={()=>this.renderListFooterComponent()}
+                              keyExtractor={(item, index) => index}
+                              scrollEventThrottle={30}
+                              onScroll={(event) => this.mainScrollViewOnScroll(event.nativeEvent.contentOffset.y)}
+                              ref={(refMainList) => {
+                                  this.mainList = refMainList;
+                              }}
+                              onResponderGrant={() => this._onStartTouch()}
+                              onResponderRelease={() => this._onReleaseMouse()}
+                    />
+                </View>
+            );
+        }else {
+            return (
+                <View style={styles.bgView}>
+
+                    <PullDownRefreshView ref={(c) => this._refPullDownRefreshView = c}
+                                         callbackPost={() => this.post()}/>
+
+                    <FlatList style={styles.list}
+                              data={this.anchorDataSource}
+                              numColumns={2}
+                              initialNumToRender={3}s
+                              getItemLayout={(data, index) => ({
+                                  length: (SCREEN_WIDTH - 24) * 0.61,
+                                  offset: (SCREEN_WIDTH - 24) * 0.61 * index,
+                                  index
+                              })}
+                              renderItem={({item, index}) =>
+                                  this.renderAnchorItem(item)
+                              }
+                              ListHeaderComponent={()=>this.renderListHeaderComponent()}
+                              ListFooterComponent={()=>this.renderListFooterComponent()}
+                              keyExtractor={(item, index) => index}
+                              scrollEventThrottle={30}
+                              onScroll={(event) => this.mainScrollViewOnScroll(event.nativeEvent.contentOffset.y)}
+                              ref={(refMainList) => {
+                                  this.mainList = refMainList;
+                              }}
+                              onResponderGrant={() => this._onStartTouch()}
+                              onResponderRelease={() => this._onReleaseMouse()}
+                    />
+                </View>
+            );
+        }
     }
 
     //flatlist 滑动的 delegate
@@ -248,21 +347,27 @@ class Universal extends React.Component {
 }
 
 const styles = StyleSheet.create({
-    bgVIew: {
+    bgView: {
         backgroundColor: 'rgba(240,240,240,1)',
     },
     list: {
         backgroundColor: 'rgba(255,255,255,0)',
-        height: SCREEN_HEIGHT - 115,
-    },
-    cellItem: {
-        flexDirection: 'row',
+        height: SCREEN_HEIGHT,
     },
     anchorGap: {
-        marginTop: 7,
         backgroundColor: 'rgba(240,240,240,1)',
-        width: 7,
-        height: (SCREEN_WIDTH - 7 * 3) / 2 + 36,
+        width: (SCREEN_WIDTH - 7 ) / 2,
+        height: 7,
+    },
+    listHeader: {
+        marginLeft:0,
+        marginTop:0,
+        width:SCREEN_WIDTH,
+    },
+    listFooter: {
+        marginLeft:0,
+        marginTop:0,
+        width:SCREEN_WIDTH,
     },
 });
 

@@ -13,7 +13,7 @@ import {
 } from 'react-native'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+const IS_5_8_DEVICE = Dimensions.get('window').height == 812;
 
 class GoodVoiceLevelView extends React.Component {
     constructor(props) {
@@ -62,46 +62,117 @@ class GoodVoiceLevelView extends React.Component {
         };
     }
 
-    propTypes : {
-        callbackSelect : PropTypes.func,
+    propTypes: {
+        GoodVoiceCallbackSelect: PropTypes.func,
     }
 
     _onSelectLevel(index) {
-        console.log('qq');
+        console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'+index);
+        // console.log(this.props.refreshInterval);
+        console.log('----');
         this.setState({
             nowLevelChose: index,
         });
-        this.props.callbackSelect(index);
+        this.props.GoodVoiceCallbackSelect(index);
+    }
+
+    renderListHeaderComponent() {
+        if (IS_5_8_DEVICE) {
+            return (
+                <View>
+                    <View style={[styles.listHeader, {height: 88}]}>
+                    </View>
+                </View>
+            );
+        } else {
+            return (
+                <View>
+                    <View style={[styles.listHeader, {height: 64}]}></View>
+                </View>
+            );
+        }
+    }
+
+    renderSeparationLine() {
+        if (IS_5_8_DEVICE) {
+            return (
+                <View style={{position: 'absolute'}}>
+                    <View style={{position: 'absolute'}}>
+                        <View style={[styles.listHeader, {height: 88}]}></View>
+                        <View style={{backgroundColor: 'rgba(220, 220, 220, 1)',height:1,width:SCREEN_WIDTH}}></View>
+                        <View style={{marginTop:43,backgroundColor: 'rgba(220, 220, 220, 1)',height:1,width:SCREEN_WIDTH}}></View>
+                        <View style={{marginTop:42,backgroundColor: 'rgba(220, 220, 220, 1)',height:1,width:SCREEN_WIDTH}}></View>
+                    </View>
+                    <View style={{position: 'absolute'}}>
+                        <View style={[styles.listHeader, {height: 88}]}></View>
+                        <View style={{flexDirection: 'row'}}>
+                            <View style={{marginLeft:SCREEN_WIDTH/3 - 1,backgroundColor: 'rgba(220, 220, 220, 1)',height:88,width:1}}></View>
+                            <View style={{marginLeft:SCREEN_WIDTH/3,backgroundColor: 'rgba(220, 220, 220, 1)',height:88,width:1}}></View>
+                        </View>
+                    </View>
+                </View>
+            );
+        } else {
+            return (
+                <View style={{position: 'absolute'}}>
+                    <View style={{position: 'absolute'}}>
+                        <View style={[styles.listHeader, {height: 64}]}></View>
+                        <View style={{backgroundColor: 'rgba(220, 220, 220, 1)',height:1,width:SCREEN_WIDTH}}></View>
+                        <View style={{backgroundColor:'white'}}>
+                            <View style={{marginTop:43,backgroundColor: 'rgba(220, 220, 220, 1)',height:1,width:SCREEN_WIDTH}}></View>
+                            <View style={{marginTop:42,backgroundColor: 'rgba(220, 220, 220, 1)',height:1,width:SCREEN_WIDTH}}></View>
+                        </View>
+                    </View>
+                    <View style={{position: 'absolute'}}>
+                        <View style={[styles.listHeader, {height: 64}]}></View>
+                        <View style={{flexDirection: 'row'}}>
+                            <View style={{marginLeft:SCREEN_WIDTH/3 - 1,backgroundColor: 'rgba(220, 220, 220, 1)',height:88,width:1}}></View>
+                            <View style={{marginLeft:SCREEN_WIDTH/3,backgroundColor: 'rgba(220, 220, 220, 1)',height:88,width:1}}></View>
+                        </View>
+                    </View>
+                </View>
+
+            );
+        }
     }
 
     render() {
+        // console.log('chose : '+ this.state.nowLevelChose);
         return (
-            <FlatList data={this.levelData}
-                      extraData={this.state.nowLevelChose}
-                      numColumns={3}
-                      renderItem={({item, index}) => {
-                          if (index == this.state.nowLevelChose) {
-                              return (
-                                  <View style={styles.levelViewItem}>
-                                      <Image source={item.iconURL_H}/>
-                                      <Text style={{marginLeft: 6, color: 'rgba(255,0,146,1)'}}>{item.title}</Text>
-                                  </View>
-                              );
-                          } else {
-                              return (
-                                  <TouchableWithoutFeedback onPress={() => this._onSelectLevel(index)}>
+            <View>
+                {this.renderListHeaderComponent()}
+                {this.renderSeparationLine()}
+                <FlatList data={this.levelData}
+                          extraData={this.state.nowLevelChose}
+                          numColumns={3}
+                          renderItem={({item, index}) => {
+                              if (index == this.state.nowLevelChose) {
+                                  return (
                                       <View style={styles.levelViewItem}>
-                                          <Image source={item.iconURL}/>
-                                          <Text style={{marginLeft: 6}}>{item.title}</Text>
+                                          <Image source={item.iconURL_H}/>
+                                          <Text style={{
+                                              marginLeft: 6,
+                                              color: 'rgba(255,0,146,1)'
+                                          }}>{item.title}</Text>
                                       </View>
-                                  </TouchableWithoutFeedback>
-                              );
+                                  );
+                              } else {
+                                  return (
+                                      <TouchableWithoutFeedback onPress={() => this._onSelectLevel(index)}>
+                                          <View style={styles.levelViewItem}>
+                                              <Image source={item.iconURL}/>
+                                              <Text style={{marginLeft: 6}}>{item.title}</Text>
+                                          </View>
+                                      </TouchableWithoutFeedback>
+                                  );
+
+                              }
                           }
-                      }
-                      }
-                      keyExtractor={(item, index) => index}
-            >
-            </FlatList>
+                          }
+                          keyExtractor={(item, index) => index}
+                >
+                </FlatList>
+            </View>
         );
     }
 
@@ -110,15 +181,17 @@ class GoodVoiceLevelView extends React.Component {
 const
     styles = StyleSheet.create({
         levelViewItem: {
-            backgroundColor: 'white',
+            // backgroundColor: 'white',//white
             flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
             height: 44,
             width: SCREEN_WIDTH / 3,
-            borderWidth: 0.5,
-            borderLeftWidth: 0,
-            borderColor: 'rgba(220, 220, 220, 1)',
+        },
+        listHeader: {
+            marginLeft: 0,
+            marginTop: 0,
+            width: SCREEN_WIDTH,
         },
     });
 

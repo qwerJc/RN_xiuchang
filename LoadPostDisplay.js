@@ -26,7 +26,7 @@ class LoadPostDisplay extends React.Component {
                         <ActivityIndicator
                             animating={this.state.animating}
                             style={styles.containerIndicator}
-                            size="large"/>
+                            size="small"/>
                     </View>
                 );
                 break;
@@ -37,7 +37,7 @@ class LoadPostDisplay extends React.Component {
                         <ActivityIndicator
                             animating={this.state.animating}
                             style={styles.containerIndicator}
-                            size="large"/>
+                            size="small"/>
                     </View>
                 );
                 break;
@@ -48,7 +48,7 @@ class LoadPostDisplay extends React.Component {
                         <ActivityIndicator
                             animating={this.state.animating}
                             style={styles.containerIndicator}
-                            size="large"/>
+                            size="small"/>
                     </View>
                 );
                 break;
@@ -59,7 +59,7 @@ class LoadPostDisplay extends React.Component {
                         <ActivityIndicator
                             animating={this.state.animating}
                             style={styles.containerIndicator}
-                            size="large"/>
+                            size="small"/>
                     </View>
                 );
                 break;

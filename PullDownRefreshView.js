@@ -11,13 +11,13 @@ import {
 } from 'react-native'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const IS_5_8_DEVICE = Dimensions.get('window').height == 812;
 
 class PullDownRefreshView extends React.Component {
     constructor(props) {
         super(props);
         this.postTimeDate = 0;
         this.state = {
-
         };
     }
 
@@ -26,35 +26,67 @@ class PullDownRefreshView extends React.Component {
     }
 
     render() {
-        return (
-            <View style={styles.pullDownRefreshBG}>
-                <View ref={(c) => this._refPullDownViewPull = c}
-                      style={[styles.pullDownRefreshView, {display: 'flex'}]}>
-                    <Image source={require('./images/LiveLobby/refresh_arrow.png')}
-                           style={{transform: [{rotate: '0deg'}]}}
-                           ref={(imgArrow) => this.imgArrowState = imgArrow}/>
-                    <Text style={styles.pullDownRefreshViewTitle}>下拉刷新</Text>
+        if (IS_5_8_DEVICE) {
+            return (
+                <View style={[styles.pullDownRefreshBG,{marginTop:88}]}>
+                    <View ref={(c) => this._refPullDownViewPull = c}
+                          style={[styles.pullDownRefreshView, {display: 'flex'}]}>
+                        <Image source={require('./images/LiveLobby/refresh_arrow.png')}
+                               style={{transform: [{rotate: '0deg'}]}}
+                               ref={(imgArrow) => this.imgArrowState = imgArrow}/>
+                        <Text style={styles.pullDownRefreshViewTitle}>下拉刷新</Text>
+                    </View>
+                    <View ref={(c) => this._refPullDownViewRelease = c}
+                          style={styles.pullDownRefreshView}>
+                        <Image source={require('./images/LiveLobby/refresh_arrow.png')}
+                               style={{transform: [{rotate: '180deg'}]}}/>
+                        <Text style={styles.pullDownRefreshViewTitle}>释放更新</Text>
+                    </View>
+                    <View ref={(c) => this._refPullDownViewLoading = c}
+                          style={styles.pullDownRefreshView}>
+                        <ActivityIndicator
+                            style={{marginRight: 7}}
+                            animating={this.state.animating}
+                            size="small"/>
+                        <Text style={styles.pullDownRefreshViewTitle}>加载中...</Text>
+                    </View>
+                    <View ref={(c) => this._refPullDownViewFinish = c}
+                          style={styles.pullDownRefreshView}>
+                        <Text style={styles.pullDownRefreshViewTitle}>加载完成</Text>
+                    </View>
                 </View>
-                <View ref={(c) => this._refPullDownViewRelease = c}
-                      style={styles.pullDownRefreshView}>
-                    <Image source={require('./images/LiveLobby/refresh_arrow.png')}
-                           style={{transform: [{rotate: '180deg'}]}}/>
-                    <Text style={styles.pullDownRefreshViewTitle}>释放更新</Text>
+            );
+        }else {
+            return (
+                <View style={[styles.pullDownRefreshBG,{marginTop:64}]}>
+                    <View ref={(c) => this._refPullDownViewPull = c}
+                          style={[styles.pullDownRefreshView, {display: 'flex'}]}>
+                        <Image source={require('./images/LiveLobby/refresh_arrow.png')}
+                               style={{transform: [{rotate: '0deg'}]}}
+                               ref={(imgArrow) => this.imgArrowState = imgArrow}/>
+                        <Text style={styles.pullDownRefreshViewTitle}>下拉刷新</Text>
+                    </View>
+                    <View ref={(c) => this._refPullDownViewRelease = c}
+                          style={styles.pullDownRefreshView}>
+                        <Image source={require('./images/LiveLobby/refresh_arrow.png')}
+                               style={{transform: [{rotate: '180deg'}]}}/>
+                        <Text style={styles.pullDownRefreshViewTitle}>释放更新</Text>
+                    </View>
+                    <View ref={(c) => this._refPullDownViewLoading = c}
+                          style={styles.pullDownRefreshView}>
+                        <ActivityIndicator
+                            style={{marginRight: 7}}
+                            animating={this.state.animating}
+                            size="small"/>
+                        <Text style={styles.pullDownRefreshViewTitle}>加载中...</Text>
+                    </View>
+                    <View ref={(c) => this._refPullDownViewFinish = c}
+                          style={styles.pullDownRefreshView}>
+                        <Text style={styles.pullDownRefreshViewTitle}>加载完成</Text>
+                    </View>
                 </View>
-                <View ref={(c) => this._refPullDownViewLoading = c}
-                      style={styles.pullDownRefreshView}>
-                    <ActivityIndicator
-                        style={{marginRight: 7}}
-                        animating={this.state.animating}
-                        size="small"/>
-                    <Text style={styles.pullDownRefreshViewTitle}>加载中...</Text>
-                </View>
-                <View ref={(c) => this._refPullDownViewFinish = c}
-                      style={styles.pullDownRefreshView}>
-                    <Text style={styles.pullDownRefreshViewTitle}>加载完成</Text>
-                </View>
-            </View>
-        );
+            );
+        }
     }
 
     //flatlist 根据滑动距离计算下拉刷新状态
@@ -168,7 +200,6 @@ class PullDownRefreshView extends React.Component {
 
 const styles = StyleSheet.create({
     pullDownRefreshBG: {
-        // marginTop:64,
         height: 44,
         width: SCREEN_WIDTH,
         // backgroundColor: 'gray',

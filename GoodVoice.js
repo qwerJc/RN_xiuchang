@@ -22,10 +22,20 @@ import EmptyPostDisplay from './EmptyPostDisplay'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+const IS_5_8_DEVICE = Dimensions.get('window').height == 812;
 
 class GoodVoice extends React.Component {
+    static defaultProps = {
+        av : '',
+        refreshInterval : 180000,
+    }
     constructor(props) {
         super(props);
+        this.rate = '1';
+        this.uid = '';
+        this.encpass = '';
+        this.rand='';
+
         this.anchorDataSource = [['null'], ['null'], ['null'], ['null'], ['null'], ['null']];//二维数组，其中0-5分别对应全部、炽星、超星、巨星、明星、红人
         //如果每一项中不为null则会导致不进Flatlist的render（因为绑定的数据源数量为0），所以必须写一项。
         this.tagInfo = [];
@@ -43,19 +53,35 @@ class GoodVoice extends React.Component {
         };
     }
 
-    componentWillMount() {
-        this.post(0);
+    propTypes: {
+        liveLobbyContainerCallback: PropTypes.func,
+    }
+
+    setRequestProps(props){
+        this.rate = props.rate;
+        this.uid = props.uid;
+        this.encpass = props.encpass;
+        this.rand = props.rand;
+    }
+    setLoginProps(props) {
+        this.uid = props.uid;
+        this.encpass = props.encpass;
     }
 
     post(nowChosenLevel) {
         this.timeDate[nowChosenLevel] = (new Date()).valueOf();     //更新时间戳
 
-        var formdata = new FormData();
-        formdata.append("rate", '1');
-        formdata.append("type", this.postType[nowChosenLevel]);
-        formdata.append("size", '0');
-        formdata.append("p", '0');
-        formdata.append("av", '2.1');
+        let requestParams = new FormData();
+        requestParams.append("rate", this.rate);
+        requestParams.append("type", this.postType[nowChosenLevel]);
+        requestParams.append("size", '0');
+        requestParams.append("p", '0');
+        requestParams.append("av", this.props.av);
+        requestParams.append('logiuid', this.uid);
+        requestParams.append('encpass', this.encpass);
+        if (this.rate){
+            requestParams.append('rand', this.rand);
+        }
 
         console.log("【好声音 页面将要打开】");
         fetch('http://v.6.cn/coop/mobile/index.php?padapi=coop-mobile-getlivelistnew.php', {
@@ -63,7 +89,7 @@ class GoodVoice extends React.Component {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: formdata,
+            body: requestParams,
         })
             .then((response) => response.json())
             .then((json) => {
@@ -112,7 +138,6 @@ class GoodVoice extends React.Component {
 
     autoRefresh() {
         this.isTouchPullDown = false;
-        console.log('自动刷新');
 
         if (this.timeDate[this.nowLevelChose] == 0) {
             console.log('第一次点击');
@@ -125,7 +150,7 @@ class GoodVoice extends React.Component {
             let nowTime = (new Date()).valueOf();
             let diff = nowTime - this.timeDate[this.nowLevelChose];
 
-            if (diff > 1000) {
+            if (diff > this.props.refreshInterval) {
                 console.log('且 距离上次点击已经3分钟');
                 this.mainList.scrollToOffset({animated: true, offset: -44});
                 this._refPullDownRefreshView.showPullDownView(2);
@@ -169,11 +194,13 @@ class GoodVoice extends React.Component {
     }
 
     _onSelectLevel(index) {
+
         this.nowLevelChose = index;
         this.autoRefresh();
+        // this.props.liveLobbyContainerCallback(index);
     }
 
-    returnAnchorItem(item, index) {
+    renderAnchorItem(item, index) {
         switch (this.state.loadState) {
             case -1: {
                 return (<FailPostDisplay layoutType={1}/>);
@@ -184,9 +211,8 @@ class GoodVoice extends React.Component {
                 break;
             }
             case 1: {
-                // console.log(item);
-                return (
-                    <View style={styles.cellItem}>
+                return (//添加顶部的空隙
+                    <View>
                         <View style={styles.anchorGap}></View>
                         <AnchorPostDisplay dataDic={item} tagsDic={this.tagInfo}/>
                     </View>
@@ -197,6 +223,20 @@ class GoodVoice extends React.Component {
                 return (<EmptyPostDisplay layoutType={1}/>);
                 break;
             }
+        }
+    }
+
+    renderListFooterComponent(){
+        if (IS_5_8_DEVICE) {
+            return (
+                <View style={[styles.listFooter,{height:90}]}>
+                </View>
+            );
+        }else {
+            return (
+                <View style={[styles.listFooter,{height:56}]}>
+                </View>
+            );
         }
     }
 
@@ -226,10 +266,10 @@ class GoodVoice extends React.Component {
                               index
                           })}
                           initialNumToRender={3}
-
-                          ListHeaderComponent={<GoodVoiceLevelView callbackSelect={(index) => this._onSelectLevel(index)}/>}
+                          ListHeaderComponent={<GoodVoiceLevelView GoodVoiceCallbackSelect={(index) => this._onSelectLevel(index)}/>}
+                          ListFooterComponent={()=>this.renderListFooterComponent()}
                           renderItem={({item, index}) =>
-                              this.returnAnchorItem(item, index)
+                              this.renderAnchorItem(item, index)
                           }
                           keyExtractor={(item, index) => index}
                           scrollEventThrottle={30}
@@ -274,39 +314,14 @@ const
         bgVIew: {
             backgroundColor: 'rgba(240,240,240,1)',
         },
-        pullDownRefreshBG: {
-            height: 44,
-            width: SCREEN_WIDTH,
-            // backgroundColor: 'gray',
-            position: 'absolute',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-        pullDownRefreshView: {
-            position: 'absolute',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            display: 'none',
-        },
-        pullDownRefreshViewTitle: {
-            // marginLeft:7,
-            color: 'rgba(146, 146, 146, 1)',
-        },
-
         list: {
             backgroundColor: 'rgba(255,255,255,0)',
-            height: SCREEN_HEIGHT - 115,
-        },
-        cellItem: {
-            flexDirection: 'row',
+            height: SCREEN_HEIGHT,
         },
         anchorGap: {
-            marginTop: 7,
             backgroundColor: 'rgba(240,240,240,1)',
-            width: 7,
-            height: (SCREEN_WIDTH - 7 * 3) / 2 + 36,
+            width: (SCREEN_WIDTH - 7 ) / 2,
+            height: 7,
         },
     });
 

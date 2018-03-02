@@ -22,7 +22,7 @@ import {
 import GoodVoice from './GoodVoice'
 import Universal     from './Universal'
 import Vicinity  from './Vicinity'
-// import MiniVideo from './MiniVideo'
+import MiniVideo from './MiniVideo'
 import JcTry     from './jcTry'
 
 var SCREEN_WIDTH = Dimensions.get('window').width;
@@ -87,6 +87,20 @@ export default class App extends Component <{}> {
     render() {
         return (
             <View style={styles.container}>
+
+
+                {/*<JcTry ref={(c) => this._refAutoRefresh = c}/>*/}
+
+                {/*<Vicinity ref={(c) => this._refAutoRefresh = c}/>*/}
+
+                {/*<GoodVoice ref={(c) => this._refAutoRefresh = c}/>*/}
+
+                <Universal ref={(c) => this._refAutoRefresh = c}
+                           type ='u2'
+                />
+
+                {/*<MiniVideo/>*/}
+
                 <View style={styles.headBar}>
                     <TouchableOpacity style={{
                         paddingTop:20,
@@ -94,20 +108,10 @@ export default class App extends Component <{}> {
                         justifyContent: 'center',
                         alignItems: 'center',
                     }}
-                        onPress={()=>this.end()}>
+                                      onPress={()=>this.end()}>
                         <Text>Click me !</Text>
                     </TouchableOpacity>
                 </View>
-
-                {/*<JcTry ref={(c) => this._refAutoRefresh = c}/>*/}
-
-                {/*<Vicinity ref={(c) => this._refAutoRefresh = c}/>*/}
-
-                <GoodVoice ref={(c) => this._refAutoRefresh = c}/>
-
-                {/*<Universal ref={(c) => this._refAutoRefresh = c}*/}
-                           {/*type ='u2'*/}
-                {/*/>*/}
 
                 <View style={styles.bottomBar}>
                     <TouchableOpacity onPress={this._onPressLive}>
@@ -143,7 +147,7 @@ export default class App extends Component <{}> {
 }
 const styles = StyleSheet.create({
     headBar: {
-        // position:'absolute',
+        position:'absolute',
         height: 64,
         width:SCREEN_WIDTH,
         backgroundColor: 'red',

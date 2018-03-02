@@ -8,7 +8,6 @@ import {
     TouchableHighlight,
     Dimensions,
     Image,
-    ActivityIndicator,
     Animated,
     Easing,
 } from 'react-native'
@@ -22,12 +21,22 @@ import EmptyPostDisplay from './EmptyPostDisplay'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+const IS_5_8_DEVICE = Dimensions.get('window').height == 812;
 
-const ProvinceMenuMaxHeight = SCREEN_HEIGHT - 170;
+const ProvinceMenuMaxHeight = IS_5_8_DEVICE ? SCREEN_HEIGHT - 170 : SCREEN_HEIGHT - 226;
 
 class Vicinity extends React.Component {
+    static defaultProps = {
+        av : '',
+        refreshInterval : 180000,
+    }
     constructor(props) {
         super(props);
+        this.rate = '1';
+        this.uid = '';
+        this.encpass = '';
+        this.rand='';
+
         this.nowProvinceTitle = '正在定位...';
         this.anchorDataSource = ['null']; //list的数据
         this.provinceDataSource = [''];
@@ -47,16 +56,32 @@ class Vicinity extends React.Component {
     }
 
     componentWillMount() {
-        this.post('');
+        // this.post('');
+    }
+
+    setRequestProps(props){
+        this.rate = props.rate;
+        this.uid = props.uid;
+        this.encpass = props.encpass;
+        this.rand = props.rand;
+    }
+    setLoginProps(props) {
+        this.uid = props.uid;
+        this.encpass = props.encpass;
     }
 
     post(pid) {
         this.timeDate = (new Date()).valueOf();     //更新时间戳
 
-        var formdata = new FormData();
-        formdata.append("size", '0');
-        formdata.append("p", '0');
-        formdata.append("pid", pid);
+        var requestParams = new FormData();
+        requestParams.append("size", '0');
+        requestParams.append("p", '0');
+        requestParams.append("pid", pid);
+        requestParams.append('logiuid', this.uid);
+        requestParams.append('encpass', this.encpass);
+        if (this.rate){
+            requestParams.append('rand', this.rand);
+        }
 
         console.log("【舞蹈 页面将要打开】");
         fetch('http://v.6.cn/coop/mobile/index.php?padapi=coop-mobile-getlivelistlocation.php', {
@@ -64,7 +89,7 @@ class Vicinity extends React.Component {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: formdata,
+            body: requestParams,
         })
             .then((response) => response.json())
             .then((json) => {
@@ -106,10 +131,14 @@ class Vicinity extends React.Component {
         let nowTime = (new Date()).valueOf();
         let diff = nowTime - this.timeDate;
 
-        if (diff > 180000) {
+        if (this.timeDate == 0){
+            this.post('');
+        }else {
+            if (diff > this.props.refreshInterval) {
 
-            this.mainList.scrollToOffset({animated: true, offset: -44});
-            this._refPullDownRefreshView.showPullDownView(2);
+                this.mainList.scrollToOffset({animated: true, offset: -44});
+                this._refPullDownRefreshView.showPullDownView(2);
+            }
         }
     }
 
@@ -226,7 +255,21 @@ class Vicinity extends React.Component {
         }
     }
 
-    returnAnchorItem(item, index) {
+    renderListFooterComponent() {
+        if (IS_5_8_DEVICE) {
+            return (
+                <View style={[styles.listFooter, {height: 90}]}>
+                </View>
+            );
+        } else {
+            return (
+                <View style={[styles.listFooter, {height: 56}]}>
+                </View>
+            );
+        }
+    }
+
+    renderAnchorItem(item, index) {
         switch (this.state.loadState) {
             //请求失败
             case -1: {//data.length = 1
@@ -239,9 +282,8 @@ class Vicinity extends React.Component {
             }
             case 1: {
                 return (
-                    <View style={styles.cellItem}>
-                        <View style={styles.anchorGap}>
-                        </View>
+                    <View>
+                        <View style={styles.anchorGap}></View>
                         <AnchorPostDisplay dataDic={item} tagsDic={this.tagInfo}/>
                     </View>
                 );
@@ -254,63 +296,59 @@ class Vicinity extends React.Component {
         }
     }
 
-    renderProvinceMenu() {
-        return (
-            <View style={{height: 55}}>
-                <View ref={(c) => this._refProvinceMenuUnclick = c}
-                      style={styles.provinceMenuButton}>
-                    <View style={styles.provinceMenuButtonLeftView}>
-                        <Image style={styles.provinceMenuButtonLeftViewIcon}
-                               source={require('./images/LiveLobby/live_list_icon_local.png')}/>
-                        <Text style={styles.provinceMenuButtonLeftViewTitle}>
-                            {this.nowProvinceTitle}
-                        </Text>
+    renderListHeaderComponent1() {
+        if (IS_5_8_DEVICE) {
+            return (
+                <View style={{height: 143}}>
+                    <View style={[styles.listHeader, {height: 88}]}></View>
+                    <View ref={(c) => this._refProvinceMenuUnclick = c}
+                          style={styles.provinceMenuButton}>
+                        <View style={styles.provinceMenuButtonLeftView}>
+                            <Image style={styles.provinceMenuButtonLeftViewIcon}
+                                   source={require('./images/LiveLobby/live_list_icon_local.png')}/>
+                            <Text style={styles.provinceMenuButtonLeftViewTitle}>
+                                {this.nowProvinceTitle}
+                            </Text>
+                        </View>
+                        <Image // 可选的基本组件类型: Image, Text, View(可以包裹任意子View)
+                            style={[styles.provinceMenuButtonArrow, {
+                                transform: [{rotate: '180deg'}]
+                            }]}
+                            source={require('./images/LiveLobby/live_list_icon_local_menu_arrow.png')}/>
                     </View>
-                    <Image // 可选的基本组件类型: Image, Text, View(可以包裹任意子View)
-                        style={[styles.provinceMenuButtonArrow, {
-                            transform: [{rotate: '180deg'}]
-                        }]}
-                        source={require('./images/LiveLobby/live_list_icon_local_menu_arrow.png')}/>
                 </View>
-            </View>
-        );
+            );
+        } else {
+            return (
+                <View style={{height: 119}}>
+                    <View style={[styles.listHeader, {height: 64}]}></View>
+                    <View ref={(c) => this._refProvinceMenuUnclick = c}
+                          style={styles.provinceMenuButton}>
+                        <View style={styles.provinceMenuButtonLeftView}>
+                            <Image style={styles.provinceMenuButtonLeftViewIcon}
+                                   source={require('./images/LiveLobby/live_list_icon_local.png')}/>
+                            <Text style={styles.provinceMenuButtonLeftViewTitle}>
+                                {this.nowProvinceTitle}
+                            </Text>
+                        </View>
+                        <Image // 可选的基本组件类型: Image, Text, View(可以包裹任意子View)
+                            style={[styles.provinceMenuButtonArrow, {
+                                transform: [{rotate: '180deg'}]
+                            }]}
+                            source={require('./images/LiveLobby/live_list_icon_local_menu_arrow.png')}/>
+                    </View>
+                </View>
+            );
+        }
     }
 
-    jc1(){
-        this.post(this.state.nowPid);
-        console.log('-----------------------------------');
-    }
-
-    render() {
-        return (
-            <View style={styles.bgVIew}>
-                <PullDownRefreshView ref={(c) => this._refPullDownRefreshView = c}
-                                     callbackPost={() => this.post(this.state.nowPid)}/>
-
-                <FlatList style={styles.list}
-                          data={this.anchorDataSource}
-                          numColumns={2}
-                          getItemLayout={(data, index) => ({
-                              length: (SCREEN_WIDTH - 24) * 0.61,
-                              offset: (SCREEN_WIDTH - 24) * 0.61 * index,
-                              index
-                          })}
-                          renderItem={({item, index}) => this.returnAnchorItem(item, index)}
-                          ListHeaderComponent={this.renderProvinceMenu.bind(this)}
-                          keyExtractor={(item, index) => index}
-                          scrollEventThrottle={30}
-                          onScroll={(event) => this.mainScrollViewOnScroll(event.nativeEvent.contentOffset.y)}
-                          ref={(refMainList) => {
-                              this.mainList = refMainList;
-                          }}
-                          onResponderGrant={() => this._onStartTouch()}
-                          onResponderRelease={() => this._onReleaseMouse()}
-                />
-
+    renderProvinceMenu() {
+        if (IS_5_8_DEVICE) {
+            return (
                 <TouchableWithoutFeedback onPress={() => this._onShowProvinceMenu()}>
-                    <View style={{height: 55, position: 'absolute'}}>
+                    <View style={{height: 55, position: 'absolute', marginTop: 88}}>
                         <View ref={(c) => this._refProvinceMenuClick = c}
-                            style={styles.provinceMenuButton}>
+                              style={styles.provinceMenuButton}>
                             <View style={styles.provinceMenuButtonLeftView}>
                                 <Image style={styles.provinceMenuButtonLeftViewIcon}
                                        source={require('./images/LiveLobby/live_list_icon_local.png')}/>
@@ -331,10 +369,43 @@ class Vicinity extends React.Component {
                         </View>
                     </View>
                 </TouchableWithoutFeedback>
+            );
+        } else {
+            return (
+                <TouchableWithoutFeedback onPress={() => this._onShowProvinceMenu()}>
+                    <View style={{height: 55, position: 'absolute', marginTop: 64}}>
+                        <View ref={(c) => this._refProvinceMenuClick = c}
+                              style={styles.provinceMenuButton}>
+                            <View style={styles.provinceMenuButtonLeftView}>
+                                <Image style={styles.provinceMenuButtonLeftViewIcon}
+                                       source={require('./images/LiveLobby/live_list_icon_local.png')}/>
+                                <Text style={styles.provinceMenuButtonLeftViewTitle}>
+                                    {this.nowProvinceTitle}
+                                </Text>
+                            </View>
+                            <Animated.Image // 可选的基本组件类型: Image, Text, View(可以包裹任意子View)
+                                style={[styles.provinceMenuButtonArrow, {
+                                    transform: [{
+                                        rotate: this.state.iconRotateValue.interpolate({ // 旋转，使用插值函数做值映射
+                                            inputRange: [0, 1],
+                                            outputRange: ['0deg', '360deg']
+                                        })
+                                    }]
+                                }]}
+                                source={require('./images/LiveLobby/live_list_icon_local_menu_arrow.png')}/>
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+            );
+        }
+    }
 
+    renderProvinceMenuList() {
+        if (IS_5_8_DEVICE) {
+            return (
                 <Animated.View style={{
                     overflow: 'hidden',
-                    marginTop: 55,
+                    marginTop: 143,
                     position: 'absolute',
                     height: this.state.provinceMenuListHeight,
                     width: SCREEN_WIDTH,
@@ -359,6 +430,69 @@ class Vicinity extends React.Component {
                               keyExtractor={(item, index) => index}
                     />
                 </Animated.View>
+            );
+        } else {
+            return (
+                <Animated.View style={{
+                    overflow: 'hidden',
+                    marginTop: 119,
+                    position: 'absolute',
+                    height: this.state.provinceMenuListHeight,
+                    width: SCREEN_WIDTH,
+                    backgroundColor: 'green',
+                }}>
+                    <FlatList style={styles.provinceMenuList}
+                              data={this.provinceDataSource}
+                              renderItem={({item, index}) =>
+                                  <TouchableHighlight underlayColor='rgba(240,240,240,1)'
+                                                      onPress={() => this._onSelectProvince(index)}>
+                                      <View>
+                                          <View style={styles.provinceMenuListCell}>
+                                              <Text>
+                                                  {item.title}
+                                              </Text>
+                                              {this.judgeProvinceMenuSelect(index)}
+                                          </View>
+                                          <View style={styles.provinceMenuListSeparator}></View>
+                                      </View>
+                                  </TouchableHighlight>
+                              }
+                              keyExtractor={(item, index) => index}
+                    />
+                </Animated.View>
+            );
+        }
+    }
+
+    render() {
+        return (
+            <View style={styles.bgVIew}>
+                <PullDownRefreshView ref={(c) => this._refPullDownRefreshView = c}
+                                     callbackPost={() => this.post(this.state.nowPid)}/>
+
+                <FlatList style={styles.list}
+                          data={this.anchorDataSource}
+                          numColumns={2}
+                          getItemLayout={(data, index) => ({
+                              length: (SCREEN_WIDTH - 24) * 0.61,
+                              offset: (SCREEN_WIDTH - 24) * 0.61 * index,
+                              index
+                          })}
+                          renderItem={({item, index}) => this.renderAnchorItem(item, index)}
+                          ListHeaderComponent={this.renderListHeaderComponent1.bind(this)}
+                          ListFooterComponent={() => this.renderListFooterComponent()}
+                          keyExtractor={(item, index) => index}
+                          scrollEventThrottle={30}
+                          onScroll={(event) => this.mainScrollViewOnScroll(event.nativeEvent.contentOffset.y)}
+                          ref={(refMainList) => {
+                              this.mainList = refMainList;
+                          }}
+                          onResponderGrant={() => this._onStartTouch()}
+                          onResponderRelease={() => this._onReleaseMouse()}
+                />
+
+                {this.renderProvinceMenu()}
+                {this.renderProvinceMenuList()}
             </View>
         );
     }
@@ -374,7 +508,7 @@ class Vicinity extends React.Component {
             this._refProvinceMenuClick.setNativeProps({
                 style: {display: 'flex'}
             });
-        }else {
+        } else {
             this._refProvinceMenuUnclick.setNativeProps({
                 style: {display: 'flex'}
             });
@@ -474,17 +608,26 @@ const styles = StyleSheet.create({
     },
     list: {
         backgroundColor: 'rgba(255,255,255,0)',
-        height: SCREEN_HEIGHT - 60,
+        height: SCREEN_HEIGHT,
         paddingBottom: 7,
     },
     cellItem: {
         flexDirection: 'row',
     },
     anchorGap: {
-        marginTop: 7,
         backgroundColor: 'rgba(240,240,240,1)',
-        width: 7,
-        height: (SCREEN_WIDTH - 7 * 3) / 2 + 36,
+        width: (SCREEN_WIDTH - 7 ) / 2,
+        height: 7,
+    },
+    listHeader: {
+        marginLeft:0,
+        marginTop:0,
+        width:SCREEN_WIDTH,
+    },
+    listFooter: {
+        marginLeft:0,
+        marginTop:0,
+        width:SCREEN_WIDTH,
     },
 });
 
