@@ -81,7 +81,7 @@ export default class App extends Component <{}> {
     }
 
     //<Dance/>
-    //<GoodVoice/>
+    //<GoodVoice/>22
     // <Vicinity/>
     // <MiniVideo/>
     render() {
